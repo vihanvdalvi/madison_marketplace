@@ -1,6 +1,14 @@
-'use client';
-import React, { useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
-import { Upload, Tag, X, Loader2, Search, Trash2, Settings } from 'lucide-react';
+"use client";
+import React, { useState, useEffect, ChangeEvent, KeyboardEvent } from "react";
+import {
+  Upload,
+  Tag,
+  X,
+  Loader2,
+  Search,
+  Trash2,
+  Settings,
+} from "lucide-react";
 
 // Ensure TypeScript recognizes JSX intrinsic elements (avoid "JSX.IntrinsicElements" error)
 declare global {
@@ -12,9 +20,10 @@ declare global {
 }
 
 // ADD YOUR KEYS HERE
-const CLAUDE_API_KEY = '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';
-const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME_HERE';
-const CLOUDINARY_UPLOAD_PRESET = 'YOUR_UPLOAD_PRESET_HERE';
+const CLAUDE_API_KEY =
+  "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";
+const CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME_HERE";
+const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET_HERE";
 
 interface Tags {
   main_category: string;
@@ -65,9 +74,9 @@ export default function ImageTagger() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [gallery, setGallery] = useState<ImageData[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<ImageData[]>([]);
-  const [activeView, setActiveView] = useState<'upload' | 'gallery'>('upload');
+  const [activeView, setActiveView] = useState<"upload" | "gallery">("upload");
 
   useEffect(() => {
     loadGallery();
@@ -75,78 +84,84 @@ export default function ImageTagger() {
 
   const loadGallery = async (): Promise<void> => {
     try {
-      const result = await window.storage.list('cloudinary-image:');
+      const result = await window.storage.list("cloudinary-image:");
       if (result && result.keys) {
         const images = await Promise.all(
           result.keys.map(async (key) => {
             const data = await window.storage.get(key);
-            return data ? JSON.parse(data.value) as ImageData : null;
+            return data ? (JSON.parse(data.value) as ImageData) : null;
           })
         );
         setGallery(images.filter((img): img is ImageData => img !== null));
       }
     } catch (err) {
-      console.log('No stored images yet');
+      console.log("No stored images yet");
     }
   };
 
-  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>): Promise<void> => {
+  const handleImageUpload = async (
+    e: ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setError(null);
     setTags(null);
-    
+
     const reader = new FileReader();
     reader.onload = (e) => setPreview(e.target?.result as string);
     reader.readAsDataURL(file);
-    
+
     setImage(file);
   };
 
   const generateTags = async (): Promise<void> => {
     if (!image) return;
-    
-    if (!CLAUDE_API_KEY || CLAUDE_API_KEY === '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') {
-      setError('Please add your Claude API key in the code');
+
+    if (
+      !CLAUDE_API_KEY ||
+      CLAUDE_API_KEY ===
+        "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"
+    ) {
+      setError("Please add your Claude API key in the code");
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onload = () => resolve((reader.result as string).split(",")[1]);
         reader.onerror = reject;
         reader.readAsDataURL(image);
       });
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': CLAUDE_API_KEY,
-          'anthropic-version': '2023-06-01'
+          "Content-Type": "application/json",
+          "x-api-key": CLAUDE_API_KEY,
+          "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
-          model: 'claude-3-5-haiku-20241022',
+          model: "claude-3-5-haiku-20241022",
           max_tokens: 1000,
           messages: [
             {
-              role: 'user',
+              role: "user",
               content: [
                 {
-                  type: 'image',
+                  type: "image",
                   source: {
-                    type: 'base64',
+                    type: "base64",
                     media_type: image.type,
-                    data: base64
-                  }
+                    data: base64,
+                  },
                 },
                 {
-                  type: 'text',
+                  type: "text",
                   text: `Analyze this image and provide tags in the following JSON format (respond with ONLY valid JSON, no other text):
 
 {
@@ -155,65 +170,80 @@ export default function ImageTagger() {
   "color": "primary color(s)",
   "material": "material composition",
   "description": "a casual 2-line description"
-}`
-                }
-              ]
-            }
-          ]
-        })
+}`,
+                },
+              ],
+            },
+          ],
+        }),
       });
 
       const data: ClaudeResponse = await response.json();
-      
+
       if (data.content && data.content[0] && data.content[0].text) {
         const text = data.content[0].text.trim();
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         const parsed: Tags = JSON.parse(jsonMatch ? jsonMatch[0] : text);
         setTags(parsed);
       } else {
-        throw new Error('Unexpected response format');
+        throw new Error("Unexpected response format");
       }
     } catch (err) {
-      setError('Failed to generate tags. Check your API key and try again.');
+      setError("Failed to generate tags. Check your API key and try again.");
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const uploadToCloudinary = async (): Promise<{ url: string; publicId: string; cloudinaryData: CloudinaryResponse }> => {
-    if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === 'YOUR_CLOUD_NAME_HERE' || !image || !tags) {
-      throw new Error('Missing Cloudinary credentials or image data');
+  const uploadToCloudinary = async (): Promise<{
+    url: string;
+    publicId: string;
+    cloudinaryData: CloudinaryResponse;
+  }> => {
+    if (
+      !CLOUDINARY_CLOUD_NAME ||
+      CLOUDINARY_CLOUD_NAME === "YOUR_CLOUD_NAME_HERE" ||
+      !image ||
+      !tags
+    ) {
+      throw new Error("Missing Cloudinary credentials or image data");
     }
 
     try {
       const formData = new FormData();
-      formData.append('file', image);
-      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      formData.append('context', `alt=${tags.specific_item}|caption=${tags.description}`);
-      formData.append('tags', `${tags.main_category},${tags.color},${tags.material}`);
+      formData.append("file", image);
+      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      formData.append(
+        "context",
+        `alt=${tags.specific_item}|caption=${tags.description}`
+      );
+      formData.append(
+        "tags",
+        `${tags.main_category},${tags.color},${tags.material}`
+      );
 
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
         {
-          method: 'POST',
-          body: formData
+          method: "POST",
+          body: formData,
         }
       );
 
       const data: CloudinaryResponse = await response.json();
-      
+
       if (data.secure_url) {
         return {
           url: data.secure_url,
           publicId: data.public_id,
-          cloudinaryData: data
+          cloudinaryData: data,
         };
       } else {
-        throw new Error('Upload failed');
+        throw new Error("Upload failed");
       }
     } catch (err) {
-      console.error('Cloudinary upload error:', err);
+      console.error("Cloudinary upload error:", err);
       throw err;
     }
   };
@@ -232,16 +262,19 @@ export default function ImageTagger() {
         cloudinaryUrl: cloudinaryResult.url,
         publicId: cloudinaryResult.publicId,
         tags,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
-      await window.storage.set(`cloudinary-image:${imageData.id}`, JSON.stringify(imageData));
-      
+      await window.storage.set(
+        `cloudinary-image:${imageData.id}`,
+        JSON.stringify(imageData)
+      );
+
       await loadGallery();
-      setActiveView('gallery');
+      setActiveView("gallery");
       clearImage();
     } catch (err) {
-      setError('Failed to save image. Check your Cloudinary credentials.');
+      setError("Failed to save image. Check your Cloudinary credentials.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -255,9 +288,10 @@ export default function ImageTagger() {
     }
 
     const query = searchQuery.toLowerCase();
-    
+
     const results = gallery.filter((img) => {
-      const searchText = `${img.tags.main_category} ${img.tags.specific_item} ${img.tags.color} ${img.tags.material} ${img.tags.description}`.toLowerCase();
+      const searchText =
+        `${img.tags.main_category} ${img.tags.specific_item} ${img.tags.color} ${img.tags.material} ${img.tags.description}`.toLowerCase();
       return searchText.includes(query);
     });
 
@@ -269,11 +303,11 @@ export default function ImageTagger() {
       await window.storage.delete(`cloudinary-image:${id}`);
       await loadGallery();
       setSearchResults([]);
-      
+
       // Note: To delete from Cloudinary, you'd need the API secret and admin API
       // For now, we just remove from local storage
     } catch (err) {
-      console.error('Failed to delete image', err);
+      console.error("Failed to delete image", err);
     }
   };
 
@@ -290,8 +324,12 @@ export default function ImageTagger() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">AI Image Tagger with Cloudinary</h1>
-          <p className="text-gray-600">Upload, tag, and store images in the cloud</p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+            AI Image Tagger with Cloudinary
+          </h1>
+          <p className="text-gray-600">
+            Upload, tag, and store images in the cloud
+          </p>
           <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800 max-w-2xl mx-auto">
             <Settings className="w-4 h-4 inline mr-2" />
             Remember to add your API keys in the code (lines 5-7)
@@ -300,22 +338,22 @@ export default function ImageTagger() {
 
         <div className="flex gap-4 mb-6">
           <button
-            onClick={() => setActiveView('upload')}
+            onClick={() => setActiveView("upload")}
             className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
-              activeView === 'upload'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+              activeView === "upload"
+                ? "bg-indigo-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
           >
             <Upload className="w-5 h-5 inline mr-2" />
             Upload & Tag
           </button>
           <button
-            onClick={() => setActiveView('gallery')}
+            onClick={() => setActiveView("gallery")}
             className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
-              activeView === 'gallery'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+              activeView === "gallery"
+                ? "bg-indigo-600 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
           >
             <Upload className="w-5 h-5 inline mr-2" />
@@ -323,13 +361,17 @@ export default function ImageTagger() {
           </button>
         </div>
 
-        {activeView === 'upload' ? (
+        {activeView === "upload" ? (
           <div className="bg-white rounded-2xl shadow-xl p-8">
             {!preview ? (
               <label className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-300 rounded-xl p-12 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
                 <Upload className="w-16 h-16 text-indigo-400 mb-4" />
-                <span className="text-lg font-medium text-gray-700 mb-2">Drop an image here or click to browse</span>
-                <span className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB</span>
+                <span className="text-lg font-medium text-gray-700 mb-2">
+                  Drop an image here or click to browse
+                </span>
+                <span className="text-sm text-gray-500">
+                  PNG, JPG, GIF up to 10MB
+                </span>
                 <input
                   type="file"
                   accept="image/*"
@@ -385,51 +427,71 @@ export default function ImageTagger() {
                       <Tag className="w-5 h-5" />
                       Generated Tags (Editable)
                     </h3>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-semibold text-gray-600">Main Category</label>
+                        <label className="text-sm font-semibold text-gray-600">
+                          Main Category
+                        </label>
                         <input
                           type="text"
                           value={tags.main_category}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => setTags({ ...tags, main_category: e.target.value })}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            setTags({ ...tags, main_category: e.target.value })
+                          }
                           className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-semibold text-gray-600">Specific Item</label>
+                        <label className="text-sm font-semibold text-gray-600">
+                          Specific Item
+                        </label>
                         <input
                           type="text"
                           value={tags.specific_item}
-                          onChange={(e) => setTags({...tags, specific_item: e.target.value})}
+                          onChange={(e) =>
+                            setTags({ ...tags, specific_item: e.target.value })
+                          }
                           className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-semibold text-gray-600">Color</label>
+                        <label className="text-sm font-semibold text-gray-600">
+                          Color
+                        </label>
                         <input
                           type="text"
                           value={tags.color}
-                          onChange={(e) => setTags({...tags, color: e.target.value})}
+                          onChange={(e) =>
+                            setTags({ ...tags, color: e.target.value })
+                          }
                           className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-semibold text-gray-600">Material</label>
+                        <label className="text-sm font-semibold text-gray-600">
+                          Material
+                        </label>
                         <input
                           type="text"
                           value={tags.material}
-                          onChange={(e) => setTags({...tags, material: e.target.value})}
+                          onChange={(e) =>
+                            setTags({ ...tags, material: e.target.value })
+                          }
                           className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                       </div>
                     </div>
-                    
+
                     <div className="pt-4 border-t border-indigo-200">
-                      <label className="text-sm font-semibold text-gray-600">Description</label>
+                      <label className="text-sm font-semibold text-gray-600">
+                        Description
+                      </label>
                       <textarea
                         value={tags.description}
-                        onChange={(e) => setTags({...tags, description: e.target.value})}
+                        onChange={(e) =>
+                          setTags({ ...tags, description: e.target.value })
+                        }
                         rows={3}
                         className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
@@ -447,7 +509,7 @@ export default function ImageTagger() {
                             Uploading...
                           </>
                         ) : (
-                          'Save to Cloudinary'
+                          "Save to Cloudinary"
                         )}
                       </button>
                       <button
@@ -471,7 +533,9 @@ export default function ImageTagger() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={(e: KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && searchImages()}
+                  onKeyPress={(e: KeyboardEvent<HTMLInputElement>) =>
+                    e.key === "Enter" && searchImages()
+                  }
                   placeholder="Search by category, color, material, description..."
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
@@ -485,7 +549,7 @@ export default function ImageTagger() {
                 {searchQuery && (
                   <button
                     onClick={() => {
-                      setSearchQuery('');
+                      setSearchQuery("");
                       setSearchResults([]);
                     }}
                     className="bg-gray-200 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-300 transition-colors"
@@ -504,12 +568,17 @@ export default function ImageTagger() {
             {displayGallery.length === 0 ? (
               <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
                 <Upload className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No images in gallery yet. Upload some to get started!</p>
+                <p className="text-gray-500">
+                  No images in gallery yet. Upload some to get started!
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {displayGallery.map((img) => (
-                  <div key={img.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                  <div
+                    key={img.id}
+                    className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+                  >
                     <div className="relative h-48 bg-gray-100">
                       <img
                         src={img.cloudinaryUrl}
@@ -525,14 +594,24 @@ export default function ImageTagger() {
                     </div>
                     <div className="p-4">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-gray-800">{img.tags.specific_item}</h3>
-                        <span className="text-xs text-gray-500">{img.tags.main_category}</span>
+                        <h3 className="font-bold text-gray-800">
+                          {img.tags.specific_item}
+                        </h3>
+                        <span className="text-xs text-gray-500">
+                          {img.tags.main_category}
+                        </span>
                       </div>
                       <div className="flex gap-2 mb-2 text-sm flex-wrap">
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">{img.tags.color}</span>
-                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded">{img.tags.material}</span>
+                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                          {img.tags.color}
+                        </span>
+                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
+                          {img.tags.material}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2">{img.tags.description}</p>
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {img.tags.description}
+                      </p>
                     </div>
                   </div>
                 ))}
