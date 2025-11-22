@@ -1,0 +1,2 @@
+# madison_marketplace
+A UW–Madison student marketplace for household items and furniture. Users upload photos of items, AI generates descriptions, and prices are suggested based on current market trends for fair transactions, helping students list, buy, and sell items efficiently through a transparent marketplace.
