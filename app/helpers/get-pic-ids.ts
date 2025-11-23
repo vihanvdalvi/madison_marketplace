@@ -17,7 +17,9 @@ export const getPicDataFromTag = cache(
       tags_str = tags_str.slice(0, -4); // remove last ' OR '
     }
     let results = await cloudinary.v2.search
-      .expression(`folder:madison-marketplace/* AND (${tags_str})`)
+      .expression(
+        `folder:madison-marketplace/* AND (${tags_str}) AND NOT tags:sold`
+      )
       .with_field("context")
       .execute();
     return results.resources;
