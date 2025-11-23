@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { initializeApp, FirebaseApp } from "firebase/app";
-import { getFirestore, collection, getDocs, Firestore } from "firebase/firestore";
+import { getFirestore, collection, getDocs, Firestore, query, where } from "firebase/firestore";
 import { getAuth, signInAnonymously, onAuthStateChanged, Auth } from "firebase/auth";
+import Image from "next/image";
 
 // Firebase client config
 const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
@@ -55,21 +56,47 @@ interface Item {
   id: string;
   title?: string;
   category?: string;
+  categories?: string[] | string; // support both shapes
   price?: number;
   status?: "available" | "sold";
+  sold?: boolean;
+  imageUrl?: string; // new: optional product image
 }
 
-// Reusable ItemCard component
+// Reusable ItemCard (matches product card style used in browse)
 const ItemCard = ({ item }: { item: Item }) => (
-  <div className="border p-4 rounded-lg shadow-sm bg-white hover:shadow-md transition">
-    <div className="flex justify-between items-center mb-2">
-      <span className="bg-gray-100 text-xs px-2 py-1 rounded uppercase font-bold text-gray-600">
-        {item.category}
-      </span>
-      <span className="text-green-700 font-bold">${item.price}</span>
+  <div className="border p-0 rounded-lg shadow-sm bg-white hover:shadow-md transition overflow-hidden">
+    <div className="relative w-full h-48 bg-gray-100">
+      {item.imageUrl ? (
+        <Image
+          src={item.imageUrl}
+          alt={item.title || "Product image"}
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
+          className="object-cover"
+        />
+      ) : (
+        <div className="flex items-center justify-center w-full h-full text-gray-400">
+          No image
+        </div>
+      )}
     </div>
-    <h3 className="text-lg font-semibold">{item.title}</h3>
-    <p className="text-sm text-gray-500">Status: {item.status}</p>
+
+    <div className="p-4">
+      <div className="flex justify-between items-start mb-2">
+        <h3 className="text-md font-semibold text-gray-800">{item.title || "Untitled"}</h3>
+        <span className="text-sm font-bold text-green-700">${item.price ?? "—"}</span>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <span className="text-xs bg-gray-100 px-2 py-1 rounded uppercase font-semibold text-gray-600">
+          {item.category ?? "Uncategorized"}
+        </span>
+        <span className={`text-xs font-medium ${item.sold ? "text-red-600" : "text-gray-500"}`}>
+          {item.sold ? "Sold" : "Available"}
+        </span>
+      </div>
+    </div>
   </div>
 );
 
@@ -129,19 +156,67 @@ export default function MarketplaceSearch() {
           "items"
         );
 
-        // fetch once and filter client-side for "contains" semantics
+        // 1) Attempt efficient server-side query for exact token matches when categories is an array:
+        try {
+          const serverQ = query(
+            itemsRef,
+            where("sold", "==", false),
+            where("categories", "array-contains", term) // requires categories stored as array of tokens
+          );
+          const serverSnap = await getDocs(serverQ);
+
+          if (!serverSnap.empty) {
+            const results: Item[] = [];
+            serverSnap.forEach((doc) => {
+              const data = doc.data() as Record<string, any>;
+              results.push({
+                id: doc.id,
+                title: data.title,
+                category: data.category,
+                categories: data.categories,
+                price: data.price,
+                sold: data.sold,
+              });
+            });
+            setMatchedItems(results);
+            setLoading(false);
+            return; // done: used server results
+          }
+          // if serverSnap empty, continue to fallback below
+        } catch (serverErr) {
+          // server query may return empty/no-op if schema differs; just fallback
+          // eslint-disable-next-line no-console
+          console.debug("Server query failed or returned empty — falling back to client-side filter.", serverErr);
+        }
+
+        // 2) Fallback: fetch documents and filter client-side for substring semantics
         const snap = await getDocs(itemsRef);
         const results: Item[] = [];
         snap.forEach((doc) => {
           const data = doc.data() as Record<string, any>;
-          const category = (data.category || "").toString().toLowerCase();
-          if (category.includes(term)) {
+
+          // skip sold items
+          if (data.sold === true) return;
+
+          // normalize categories field which can be an array or a string
+          const categoriesRaw = data.categories ?? data.category ?? "";
+          let matches = false;
+          if (Array.isArray(categoriesRaw)) {
+            matches = categoriesRaw.some((c: any) =>
+              String(c || "").toLowerCase().includes(term)
+            );
+          } else {
+            matches = String(categoriesRaw || "").toLowerCase().includes(term);
+          }
+
+          if (matches) {
             results.push({
               id: doc.id,
               title: data.title,
               category: data.category,
+              categories: data.categories,
               price: data.price,
-              status: data.status,
+              sold: data.sold,
             });
           }
         });
@@ -200,6 +275,13 @@ export default function MarketplaceSearch() {
         </div>
       ) : (
         <p className="text-center text-gray-500 py-10">No items found</p>
+      )}
+
+      {/* Warning when Firestore DB is not available */}
+      {!db && searchText.trim() !== "" && (
+        <div className="mt-2 p-2 text-sm text-yellow-800 bg-yellow-50 border rounded">
+          Search unavailable — cannot reach Firestore.
+        </div>
       )}
     </div>
   );
