@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { initializeApp, FirebaseApp } from "firebase/app";
-import { getFirestore, collection, getDocs, Firestore, query, where } from "firebase/firestore";
-import { getAuth, signInAnonymously, onAuthStateChanged, Auth } from "firebase/auth";
 import Image from "next/image";
-
-// Firebase client config
-const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
 
 // -------------------- Firebase init (safe, single source) --------------------
 // Prefer runtime global __firebase_config (used elsewhere in the project) and fallback to NEXT_PUBLIC_FIREBASE_CONFIG
@@ -54,13 +48,13 @@ if (hasFirebaseConfig) {
 
 interface Item {
   id: string;
-  title?: string;
-  category?: string;
-  categories?: string[] | string; // support both shapes
-  price?: number;
-  status?: "available" | "sold";
-  sold?: boolean;
-  imageUrl?: string; // new: optional product image
+  title?: string | null;
+  category?: string | null;
+  categories?: string[] | string | null;
+  price?: number | null;
+  sold?: boolean | null;
+  imageUrl?: string | null;
+  publicId?: string | null;
 }
 
 // Reusable ItemCard (matches product card style used in browse)
@@ -70,7 +64,7 @@ const ItemCard = ({ item }: { item: Item }) => (
       {item.imageUrl ? (
         <Image
           src={item.imageUrl}
-          alt={item.title || "Product image"}
+          alt={item.title ?? "Product image"}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
           className="object-cover"
@@ -84,7 +78,7 @@ const ItemCard = ({ item }: { item: Item }) => (
 
     <div className="p-4">
       <div className="flex justify-between items-start mb-2">
-        <h3 className="text-md font-semibold text-gray-800">{item.title || "Untitled"}</h3>
+        <h3 className="text-md font-semibold text-gray-800">{item.title ?? "Untitled"}</h3>
         <span className="text-sm font-bold text-green-700">${item.price ?? "—"}</span>
       </div>
 
@@ -101,130 +95,40 @@ const ItemCard = ({ item }: { item: Item }) => (
 );
 
 export default function MarketplaceSearch() {
-  const [user, setUser] = useState<any>(null);
   const [matchedItems, setMatchedItems] = useState<Item[]>([]);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const debounceRef = useRef<number | undefined>(undefined);
 
-  // sign in anonymously if auth present
   useEffect(() => {
-    if (!auth) {
-      // keep quiet in UI; devs can see console
-      // eslint-disable-next-line no-console
-      if (!hasFirebaseConfig) console.warn("Firebase not configured; search will be disabled.");
-      return;
-    }
-    signInAnonymously(auth);
-    return onAuthStateChanged(auth, (u) => setUser(u));
-  }, []);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
-  // perform search on debounced input; if input empty => clear results
-  useEffect(() => {
-    // clear previous debounce
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-
-    // no results shown for empty input per request
     if (!searchText || searchText.trim() === "") {
       setMatchedItems([]);
       setLoading(false);
+      setApiError(null);
       return;
     }
 
-    // debounce 300ms
     setLoading(true);
     debounceRef.current = window.setTimeout(async () => {
-      const term = searchText.toLowerCase().trim();
-
-      if (!db) {
-        // eslint-disable-next-line no-console
-        console.warn("Firestore DB not available; cannot perform search.");
-        setMatchedItems([]);
-        setLoading(false);
-        return;
-      }
-
+      const q = encodeURIComponent(searchText.trim());
       try {
-        const itemsRef = collection(
-          db,
-          "artifacts",
-          typeof __app_id !== "undefined" ? __app_id : appId,
-          "public",
-          "data",
-          "items"
-        );
-
-        // 1) Attempt efficient server-side query for exact token matches when categories is an array:
-        try {
-          const serverQ = query(
-            itemsRef,
-            where("sold", "==", false),
-            where("categories", "array-contains", term) // requires categories stored as array of tokens
-          );
-          const serverSnap = await getDocs(serverQ);
-
-          if (!serverSnap.empty) {
-            const results: Item[] = [];
-            serverSnap.forEach((doc) => {
-              const data = doc.data() as Record<string, any>;
-              results.push({
-                id: doc.id,
-                title: data.title,
-                category: data.category,
-                categories: data.categories,
-                price: data.price,
-                sold: data.sold,
-              });
-            });
-            setMatchedItems(results);
-            setLoading(false);
-            return; // done: used server results
-          }
-          // if serverSnap empty, continue to fallback below
-        } catch (serverErr) {
-          // server query may return empty/no-op if schema differs; just fallback
-          // eslint-disable-next-line no-console
-          console.debug("Server query failed or returned empty — falling back to client-side filter.", serverErr);
+        setApiError(null);
+        const res = await fetch(`/api/search?q=${q}`);
+        if (!res.ok) {
+          setApiError("Cannot access Firestore — search unavailable.");
+          setMatchedItems([]);
+          setLoading(false);
+          return;
         }
-
-        // 2) Fallback: fetch documents and filter client-side for substring semantics
-        const snap = await getDocs(itemsRef);
-        const results: Item[] = [];
-        snap.forEach((doc) => {
-          const data = doc.data() as Record<string, any>;
-
-          // skip sold items
-          if (data.sold === true) return;
-
-          // normalize categories field which can be an array or a string
-          const categoriesRaw = data.categories ?? data.category ?? "";
-          let matches = false;
-          if (Array.isArray(categoriesRaw)) {
-            matches = categoriesRaw.some((c: any) =>
-              String(c || "").toLowerCase().includes(term)
-            );
-          } else {
-            matches = String(categoriesRaw || "").toLowerCase().includes(term);
-          }
-
-          if (matches) {
-            results.push({
-              id: doc.id,
-              title: data.title,
-              category: data.category,
-              categories: data.categories,
-              price: data.price,
-              sold: data.sold,
-            });
-          }
-        });
-
-        setMatchedItems(results);
+        const data = await res.json();
+        setMatchedItems(Array.isArray(data) ? data : []);
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error("Search error:", err);
+        console.error("Search fetch error:", err);
+        setApiError("Cannot access Firestore — search unavailable.");
         setMatchedItems([]);
       } finally {
         setLoading(false);
@@ -243,13 +147,18 @@ export default function MarketplaceSearch() {
 
       <input
         type="text"
-        placeholder="Type category keyword and press Enter or wait..."
+        placeholder="Type a single keyword that matches a category word..."
         value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
-        className="w-full p-3 border rounded-lg text-lg focus:ring-2 focus:ring-blue-500 outline-none mb-6"
+        className="w-full p-3 border rounded-lg text-lg focus:ring-2 focus:ring-blue-500 outline-none mb-3"
       />
 
-      {/* Results area: empty until searchText provided */}
+      {apiError && searchText.trim() !== "" && (
+        <div className="mb-4 p-2 text-sm text-yellow-800 bg-yellow-50 border rounded">
+          {apiError}
+        </div>
+      )}
+
       {loading ? (
         <p className="text-gray-500">Searching...</p>
       ) : searchText.trim() === "" ? (
@@ -275,13 +184,6 @@ export default function MarketplaceSearch() {
         </div>
       ) : (
         <p className="text-center text-gray-500 py-10">No items found</p>
-      )}
-
-      {/* Warning when Firestore DB is not available */}
-      {!db && searchText.trim() !== "" && (
-        <div className="mt-2 p-2 text-sm text-yellow-800 bg-yellow-50 border rounded">
-          Search unavailable — cannot reach Firestore.
-        </div>
       )}
     </div>
   );
