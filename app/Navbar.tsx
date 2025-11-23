@@ -27,7 +27,7 @@ export default function Navbar() {
                 Browse
               </Link>
               <Link
-                href="/sell"
+                href="/upload"
                 className="inline-flex items-center h-full text-lg leading-none text-gray-700 hover:text-gray-900"
               >
                 Sell
@@ -79,14 +79,11 @@ export default function Navbar() {
       {open && (
         <div className="md:hidden border-t bg-[#EDE8D0]">
           <div className="px-4 py-3 space-y-2">
-            <Link href="/search" className="block text-gray-700">
+            <Link href="/browse" className="block text-gray-700">
               Browse
             </Link>
-            <Link href="/sell" className="block text-gray-700">
+            <Link href="/upload" className="block text-gray-700">
               Sell
-            </Link>
-            <Link href="/about" className="block text-gray-700">
-              About
             </Link>
             {userEmail ? (
               <div className="block text-gray-700">Hello, {userEmail}</div>
