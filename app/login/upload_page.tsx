@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, ChangeEvent } from "react";
+import { useUser } from "../context/UserContext";
 import { Upload, Tag, X, Loader2 } from "lucide-react";
 
 interface Tags {
@@ -18,6 +19,7 @@ export default function ImageTagger() {
   const [tags, setTags] = useState<Tags | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { userEmail } = useUser();
 
   const handleImageUpload = async (
     e: ChangeEvent<HTMLInputElement>
@@ -112,6 +114,7 @@ export default function ImageTagger() {
                 : parseFloat(tags.price)
               : null,
           pickup_location: tags.pickup_location.trim() || null,
+          userEmail: userEmail || null,
         }),
       });
 

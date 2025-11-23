@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME!;
+import { db } from "../../helpers/firebase";
+import { Timestamp } from "firebase-admin/firestore";
+const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
 const CLOUDINARY_UPLOAD_PRESET =
   process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET!;
 
@@ -16,12 +17,14 @@ interface Tags {
 
 export async function POST(request: NextRequest) {
   try {
-    const { image, tags, price, pickup_location } = (await request.json()) as {
-      image: string;
-      tags: Tags;
-      price?: number | null;
-      pickup_location?: string;
-    };
+    const { image, tags, price, pickup_location, userEmail } =
+      (await request.json()) as {
+        image: string;
+        tags: Tags;
+        price?: number | null;
+        pickup_location?: string;
+        userEmail: string | null;
+      };
 
     if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
       return NextResponse.json(
@@ -65,6 +68,24 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
 
     if (data.secure_url) {
+      const utcDateString = data.created_at; // e.g., "2023-10-05T12:34:56Z"
+      const createdAt = new Date(utcDateString);
+
+      const firebaseStamp = Timestamp.fromDate(createdAt);
+
+      await db
+        .collection("price-directory")
+        .doc(data.public_id.toString().replace("madison-marketplace/", ""))
+        .set({
+          price: price ?? null,
+          pickup_location: pickup_location ?? null,
+          created_at: firebaseStamp,
+          categories: tags.description,
+          main_category: tags.main_category,
+          userEmail: userEmail,
+          sold: false,
+        });
+
       return NextResponse.json({
         url: data.secure_url,
         publicId: data.public_id,
