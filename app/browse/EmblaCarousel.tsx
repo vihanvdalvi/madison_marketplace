@@ -10,6 +10,7 @@ import {
 } from "./EmblaCarouselArrowButtons";
 import useEmblaCarousel from "embla-carousel-react";
 import { CldImage } from "next-cloudinary";
+import Link from "next/dist/client/link";
 
 type PropType = {
   slides: {
@@ -42,44 +43,46 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
     <section className="w-full items-center mb-0">
       <div className="w-full overflow-clip" ref={emblaRef}>
         {/* counter the slide horizontal padding so slides align flush on mobile */}
-        <div className="flex -mx-4 md:-ml-4 backface-hidden touch-pan-y">
+        <div className="flex md:-ml-4 backface-hidden touch-pan-y">
           {slides.map((data) => (
-            <div
-              className="flex flex-col flex-none w-full px-4 md:w-[150px] lg:w-[200px] overflow-hidden"
+            <Link
               key={data.id}
+              href={`/listings/${data.id.replace("madison-marketplace/", "")}`}
             >
-              <CldImage
-                src={data.picture}
-                width={data.width}
-                height={data.height}
-                alt={data.description}
-                quality={"auto"}
-                sizes={"25vw"}
-                format="auto"
-                rawTransformations={["ar_1,c_crop"]}
-                className="md:aspect-auto w-full block min-h-0 object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
-              />
-              <div className="flex flex-col w-full h-fit">
-                <div className="md:aspect-auto pt-2 w-full text-lg font-semibold text-gray-700">
-                  {data.description
-                    .split(" ")
-                    .map(
-                      (word: string) =>
-                        word.charAt(0).toUpperCase() +
-                        word.slice(1).toLowerCase()
-                    )
-                    .join(" ")}
-                </div>
-                <div className="text-md text-gray-500">
-                  {data.price ? `$${data.price}` : ""}
+              <div className="flex md:m-4 flex-col flex-none w-full px-4 md:w-[150px] lg:w-[200px] overflow-hidden hover:scale-110 transition-transform duration-300">
+                <CldImage
+                  src={data.picture}
+                  width={data.width}
+                  height={data.height}
+                  alt={data.description}
+                  quality={"auto"}
+                  sizes={"25vw"}
+                  format="auto"
+                  rawTransformations={["ar_1,c_crop"]}
+                  className="md:aspect-auto w-full block min-h-0 object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
+                />
+                <div className="flex flex-col w-full h-fit">
+                  <div className="md:aspect-auto pt-2 w-full text-lg font-semibold text-gray-700">
+                    {data.description
+                      .split(" ")
+                      .map(
+                        (word: string) =>
+                          word.charAt(0).toUpperCase() +
+                          word.slice(1).toLowerCase()
+                      )
+                      .join(" ")}
+                  </div>
+                  <div className="text-md text-gray-500">
+                    {data.price ? `$${data.price}` : ""}
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
 
-      <div className="mt-4 hidden md:flex items-center justify-between">
+      <div className="mt-1 hidden md:flex items-center justify-between">
         <div className="flex gap-3">
           <PrevButton onClick={onPrevButtonClick} disabled={prevBtnDisabled} />
           <NextButton onClick={onNextButtonClick} disabled={nextBtnDisabled} />
