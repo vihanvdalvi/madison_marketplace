@@ -64,7 +64,7 @@ export default function LoginPage() {
       setUserEmail(normalized);
       // Redirect to upload page after successful login
       resetForm();
-      router.push("/upload");
+      router.push("/browse");
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Login failed. Check credentials.");

@@ -1,21 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, updateDoc } from "firebase/firestore";
-import { getAuth, signInAnonymously } from "firebase/auth";
 
-// Read firebase config injected at runtime (same pattern used elsewhere)
-declare const __firebase_config: string | undefined;
-declare const __app_id: string | undefined;
-const firebaseConfig = JSON.parse(
-  typeof __firebase_config !== "undefined" ? __firebase_config : "{}"
-);
-const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// `setSold` is a server-side helper; call it via the server API route below.
 
 function luhnCheck(cardNumber: string) {
   const sanitized = cardNumber.replace(/\D/g, "");
@@ -57,40 +44,30 @@ export default function Payments({
     if (!/^\d{3,4}$/.test(cvc)) return setMessage("Invalid CVC.");
     if (!/^\d{1,2}\/\d{2}$/.test(expiry))
       return setMessage("Expiry must be MM/YY.");
-
     setLoading(true);
-
     try {
-      // Ensure we are authenticated (anonymous) so Firestore rules allow update
-      await signInAnonymously(auth);
+      // Simulate payment processing and then notify the server to mark item as sold
 
-      // Update the item's document to mark sold. We set both `sold: true` and `status: 'sold'`
-      const docRef = doc(
-        db,
-        "artifacts",
-        appId,
-        "public",
-        "data",
-        "items",
-        itemId
-      );
-      await updateDoc(docRef, { sold: true, status: "sold" });
+      let req_id = itemId.replace("madison-marketplace/", "");
 
+      const res = await fetch("/api/set-sold", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemId: req_id }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to mark item sold");
+      }
+
+      setMessage("Payment successful! Thank you for your purchase.");
+    } catch (err) {
       setMessage(
-        `Payment simulated for ${
-          price ? `$${price}` : "this item"
-        }. Item marked as sold.`
+        "Payment processed but we couldn't update the listing. Please contact support."
       );
-    } catch (err: any) {
-      console.error("Failed to mark item sold", err);
-      setMessage("Failed to mark item as sold. Check console for details.");
     } finally {
       setLoading(false);
-
-      // Clear sensitive fields immediately
-      setCard("");
-      setCvc("");
-      setExpiry("");
     }
   };
 
