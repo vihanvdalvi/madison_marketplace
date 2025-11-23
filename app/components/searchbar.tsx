@@ -239,7 +239,7 @@ export default function MarketplaceSearch() {
   // UI: always show an empty search input at start; nothing else until user types
   return (
     <div className="p-8 max-w-4xl mx-auto font-sans">
-      <h1 className="text-3xl font-bold mb-4">Marketplace</h1>
+      <h1 className="text-3xl font-bold mb-4">Available Products</h1>
 
       <input
         type="text"
