@@ -3,10 +3,17 @@
 import Link from "next/link";
 import React, { useState } from "react";
 import { useUser } from "./context/UserContext";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const { userEmail } = useUser();
+  const { userEmail, setUserEmail } = useUser();
+  const router = useRouter();
+
+  const signOut = () => {
+    setUserEmail(null);
+    router.push('/login');
+  };
 
   return (
     <header className="w-full bg-[#EDE8D0] backdrop-blur-sm border-b">
@@ -38,18 +45,22 @@ export default function Navbar() {
           <div className="flex items-center gap-4 ">
             <div className="hidden md:flex items-center gap-3 h-16">
               {userEmail ? (
-                <span className="text-sm text-gray-700">
-                  Hello, {userEmail}
-                </span>
-              ) : (
-                <>
-                  <Link
-                    href="/login"
-                    className="block bg-[#C41E3A] px-3 py-2 rounded-md"
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-700">Hello, {userEmail}</span>
+                  <button
+                    onClick={signOut}
+                    className="text-sm bg-gray-100 px-3 py-2 rounded-md hover:bg-gray-200"
                   >
-                    Sign in
-                  </Link>
-                </>
+                    Sign out
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="block bg-[#C41E3A] px-3 py-2 rounded-md"
+                >
+                  Sign in
+                </Link>
               )}
             </div>
 
@@ -86,16 +97,22 @@ export default function Navbar() {
               Sell
             </Link>
             {userEmail ? (
-              <div className="block text-gray-700">Hello, {userEmail}</div>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="block font-bold bg-[#C41E3A] px-3 py-2 rounded-md"
+              <div className="flex items-center gap-3">
+                <div className="block text-gray-700">Hello, {userEmail}</div>
+                <button
+                  onClick={signOut}
+                  className="block font-medium bg-gray-100 px-3 py-2 rounded-md"
                 >
-                  Sign in
-                </Link>
-              </>
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="block font-bold bg-[#C41E3A] px-3 py-2 rounded-md"
+              >
+                Sign in
+              </Link>
             )}
           </div>
         </div>
