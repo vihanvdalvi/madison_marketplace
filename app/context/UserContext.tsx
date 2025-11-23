@@ -12,15 +12,17 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // Initialize from localStorage synchronously on first client render to avoid
-  // an interim null state that causes UI flicker (reads are wrapped in try/catch)
-  const [userEmail, setUserEmailState] = useState<string | null>(() => {
+  const [userEmail, setUserEmailState] = useState<string | null>(null);
+
+  // Hydrate from localStorage on mount so the value persists across navigations
+  React.useEffect(() => {
     try {
-      return localStorage.getItem("mm_user_email");
+      const stored = localStorage.getItem("mm_user_email");
+      if (stored) setUserEmailState(stored);
     } catch (e) {
-      return null;
+      // ignore (e.g., SSR or blocked storage)
     }
-  });
+  }, []);
 
   // wrapper to update state and persist
   const setUserEmail = (email: string | null) => {

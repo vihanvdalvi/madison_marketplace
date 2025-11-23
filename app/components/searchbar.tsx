@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 // import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 // -------------------- Firebase init (safe, single source) --------------------
@@ -8,13 +9,15 @@ import { CldImage } from "next-cloudinary";
 const rawConfig =
   typeof window !== "undefined"
     ? // runtime: prefer global set before render
-      (window as any).__firebase_config ?? (process.env.NEXT_PUBLIC_FIREBASE_CONFIG as any)
+      (window as any).__firebase_config ??
+      (process.env.NEXT_PUBLIC_FIREBASE_CONFIG as any)
     : (process.env.NEXT_PUBLIC_FIREBASE_CONFIG as any);
 
 let firebaseConfig: Record<string, any> = {};
 if (rawConfig) {
   try {
-    firebaseConfig = typeof rawConfig === "string" ? JSON.parse(rawConfig) : rawConfig;
+    firebaseConfig =
+      typeof rawConfig === "string" ? JSON.parse(rawConfig) : rawConfig;
   } catch (e) {
     // invalid JSON or unexpected shape - keep firebaseConfig empty
     // eslint-disable-next-line no-console
@@ -26,24 +29,24 @@ if (rawConfig) {
 const hasFirebaseConfig = !!firebaseConfig && !!firebaseConfig.apiKey;
 
 // Keep references optional to avoid using Firebase when not configured
-let app: FirebaseApp | undefined;
-let auth: Auth | undefined;
-let db: Firestore | undefined;
+// let app: FirebaseApp | undefined;
+// let auth: Auth | undefined;
+// let db: Firestore | undefined;
 
-if (hasFirebaseConfig) {
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-  } catch (e) {
-    // initialization failed — leave as undefined and log for debugging
-    // eslint-disable-next-line no-console
-    console.error("Firebase init error:", e);
-    app = undefined;
-    auth = undefined;
-    db = undefined;
-  }
-}
+// if (hasFirebaseConfig) {
+//   try {
+//     app = initializeApp(firebaseConfig);
+//     auth = getAuth(app);
+//     db = getFirestore(app);
+//   } catch (e) {
+//     // initialization failed — leave as undefined and log for debugging
+//     // eslint-disable-next-line no-console
+//     console.error("Firebase init error:", e);
+//     app = undefined;
+//     auth = undefined;
+//     db = undefined;
+//   }
+// }
 // -------------------- end Firebase init --------------------
 
 interface Item {
@@ -59,7 +62,7 @@ interface Item {
 
 // Reusable ItemCard (matches product card style used in browse)
 const ItemCard = ({ item }: { item: any }) => (
-  <div className="border p-0 rounded-lg shadow-sm bg-white hover:shadow-md transition overflow-hidden">
+  <div className="border p-0 rounded-lg shadow-sm bg-white hover:shadow-md hover:scale-105 transition overflow-hidden">
     <div className="relative w-full h-48 bg-gray-100">
       {item.id ? (
         <CldImage
@@ -78,16 +81,8 @@ const ItemCard = ({ item }: { item: any }) => (
 
     <div className="p-4">
       <div className="flex justify-between items-start mb-2">
-        <h3 className="text-md font-semibold text-gray-800">{item.title ?? "Untitled"}</h3>
-        <span className="text-sm font-bold text-green-700">${item.price ?? "—"}</span>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <span className="text-xs bg-gray-100 px-2 py-1 rounded uppercase font-semibold text-gray-600">
-          {item.category ?? "Uncategorized"}
-        </span>
-        <span className={`text-xs font-medium ${item.sold ? "text-red-600" : "text-gray-500"}`}>
-          {item.sold ? "Sold" : "Available"}
+        <span className="text-sm font-bold text-green-700">
+          ${item.price ?? "—"}
         </span>
       </div>
     </div>
@@ -197,19 +192,12 @@ export default function MarketplaceSearch() {
         <div />
       ) : matchedItems.length > 0 ? (
         <div>
-          <h2 className="text-lg font-medium mb-2">Matched IDs</h2>
-          <ul className="mb-4 space-y-2">
-            {matchedItems.map((it) => (
-              <li key={it.id} className="text-sm text-gray-700">
-                {it.id} {it.title ? `— ${it.title}` : ""}
-              </li>
-            ))}
-          </ul>
-
           {/* optional card view */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 mt-2 lg:grid-cols-3 gap-4">
             {matchedItems.map((item) => (
-              <ItemCard key={item.id} item={item} />
+              <Link href={`/listings/${item.id}`} key={item.id}>
+                <ItemCard key={item.id} item={item} />
+              </Link>
             ))}
           </div>
         </div>

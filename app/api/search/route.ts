@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "../../helpers/firebase";
 
 function normalizeWord(w: string) {
-  return String(w || "").toLowerCase().trim();
+  return String(w || "")
+    .toLowerCase()
+    .trim();
 }
 
 function tokenize(str: string) {
@@ -29,15 +31,16 @@ export async function GET(request: NextRequest) {
     const results = snap.docs
       .map((doc) => {
         const data = doc.data() as Record<string, any>;
+        console.log("DATA: ", data);
         return {
           id: doc.id,
-          title: data.title ?? null,
-          category: data.category ?? null,
-          categories: data.categories ?? null,
-          price: data.price ?? null,
-          sold: data.sold ?? false,
-          imageUrl: data.imageUrl ?? null,
-          publicId: data.publicId ?? null,
+          description: data.description || "",
+          category: data.category || "",
+          categories: data.categories || "",
+          price: data.price || 0,
+          sold: data.sold || false,
+          imageUrl: data.imageUrl || "",
+          publicId: data.publicId || "",
         };
       })
       .filter((item) => {
@@ -46,11 +49,13 @@ export async function GET(request: NextRequest) {
         if (Array.isArray(categoriesRaw)) {
           // each element may contain multiple words; tokenize and check exact equality
           return categoriesRaw.some((el: any) =>
-            tokenize(String(el)).some((token) => token === term)
+            tokenize(String(el)).some((token) => token.includes(term))
           );
         } else {
           // string -> tokenize and check exact equality
-          return tokenize(String(categoriesRaw)).some((token) => token === term);
+          return tokenize(String(categoriesRaw)).some((token) =>
+            token.includes(term)
+          );
         }
       });
 

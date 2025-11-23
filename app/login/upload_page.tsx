@@ -140,7 +140,7 @@ export default function ImageTagger() {
     setError(null);
   };
   return (
-    <div className="min-h-screen bg-linear-to-br from-indigo-50 via-white to-purple-50 p-8">
+    <div className="min-h-screen bg-[#EDE8D0] p-8">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
@@ -153,8 +153,8 @@ export default function ImageTagger() {
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {!preview ? (
-            <label className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-300 rounded-xl p-12 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all">
-              <Upload className="w-16 h-16 text-indigo-400 mb-4" />
+            <label className="flex flex-col items-center justify-center border-2 border-dashed border-red-600 rounded-xl p-12 cursor-pointer hover:border-red-700 hover:bg-red-50 transition-all">
+              <Upload className="w-16 h-16 text-red-400 mb-4" />
               <span className="text-lg font-medium text-gray-700 mb-2">
                 Drop an image here or click to browse
               </span>
@@ -178,7 +178,7 @@ export default function ImageTagger() {
                 />
                 <button
                   onClick={clearImage}
-                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
+                  className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -188,7 +188,7 @@ export default function ImageTagger() {
                 <button
                   onClick={generateTags}
                   disabled={loading}
-                  className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -335,7 +335,7 @@ export default function ImageTagger() {
                     <button
                       onClick={generateTags}
                       disabled={loading}
-                      className="flex-1 bg-white text-indigo-600 py-2 rounded-lg font-medium hover:bg-indigo-100 disabled:bg-gray-200 transition-colors"
+                      className="flex-1 bg-white text-red-600 py-2 rounded-lg font-medium hover:bg-red-100 disabled:bg-gray-200 transition-colors"
                     >
                       Regenerate Tags
                     </button>

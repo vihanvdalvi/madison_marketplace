@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./Navbar";
 import { UserProvider } from "./context/UserContext";
+import AuthRedirect from "./AuthRedirect";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} bg-[#EDE8D0] antialiased`}
       >
         <UserProvider>
+          <AuthRedirect />
           <Navbar />
           {children}
         </UserProvider>

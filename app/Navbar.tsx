@@ -12,39 +12,66 @@ export default function Navbar() {
 
   const signOut = () => {
     setUserEmail(null);
-    router.push('/login');
+    router.push("/login");
   };
+
+  let disable = false;
+  if (userEmail == null) {
+    disable = true;
+  }
 
   return (
     <header className="w-full bg-[#EDE8D0] backdrop-blur-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex flex-row items-center gap-6">
-            <Link
-              href="/browse"
-              className="text-3xl h-full items-center inline-flex mb-[5px] font-bold leading-none"
-            >
-              Madison Marketplace
-            </Link>
-            <nav className="hidden md:flex items-center gap-6 h-16">
+            {disable ? (
+              <span className="text-3xl h-full items-center inline-flex mb-[5px] font-bold leading-none opacity-50 cursor-not-allowed">
+                Madison Marketplace
+              </span>
+            ) : (
               <Link
                 href="/browse"
-                className="inline-flex items-center h-full text-lg leading-none text-gray-700 hover:text-gray-900"
+                className="text-3xl h-full items-center inline-flex mb-[5px] font-bold leading-none"
               >
-                Browse
+                Madison Marketplace
               </Link>
-              <Link
-                href="/search"
-                className="inline-flex items-center h-full text-lg leading-none text-gray-700 hover:text-gray-900"
-              >
-                Search
-              </Link>
-              <Link
-                href="/upload"
-                className="inline-flex items-center h-full text-lg leading-none text-gray-700 hover:text-gray-900"
-              >
-                Sell
-              </Link>
+            )}
+            <nav className="hidden md:flex items-center gap-6 h-16">
+              {disable ? (
+                <>
+                  <span className="inline-flex items-center h-full text-lg leading-none text-gray-700 opacity-50 cursor-not-allowed">
+                    Browse
+                  </span>
+                  <span className="inline-flex items-center h-full text-lg leading-none text-gray-700 opacity-50 cursor-not-allowed">
+                    Search
+                  </span>
+                  <span className="inline-flex items-center h-full text-lg leading-none text-gray-700 opacity-50 cursor-not-allowed">
+                    Sell
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/browse"
+                    className="inline-flex items-center h-full text-lg leading-none text-gray-700 hover:text-gray-900"
+                  >
+                    Browse
+                  </Link>
+                  <Link
+                    href="/search"
+                    className="inline-flex items-center h-full text-lg leading-none text-gray-700 hover:text-gray-900"
+                  >
+                    Search
+                  </Link>
+                  <Link
+                    href="/upload"
+                    className="inline-flex items-center h-full text-lg leading-none text-gray-700 hover:text-gray-900"
+                  >
+                    Sell
+                  </Link>
+                </>
+              )}
             </nav>
           </div>
 
@@ -52,7 +79,9 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-3 h-16">
               {userEmail ? (
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-700">Hello, {userEmail}</span>
+                  <span className="text-sm text-gray-700">
+                    Hello, {userEmail}
+                  </span>
                   <button
                     onClick={signOut}
                     className="text-sm bg-gray-100 px-3 py-2 rounded-md hover:bg-gray-200"
@@ -63,7 +92,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="block bg-[#C41E3A] px-3 py-2 rounded-md"
+                  className="block font-semibold text-white bg-red-600 px-3 py-2 rounded-md"
                 >
                   Sign in
                 </Link>
@@ -71,7 +100,9 @@ export default function Navbar() {
             </div>
 
             <button
-              className="md:hidden p-2 rounded-md text-gray-600"
+              className={`md:hidden p-2 rounded-md text-gray-600 ${
+                disable ? "opacity-40" : ""
+              }`}
               aria-label="Toggle menu"
               onClick={() => setOpen((v) => !v)}
             >
@@ -96,15 +127,31 @@ export default function Navbar() {
       {open && (
         <div className="md:hidden border-t bg-[#EDE8D0]">
           <div className="px-4 py-3 space-y-2">
-            <Link href="/browse" className="block text-gray-700">
-              Browse
-            </Link>
-            <Link href="/search" className="block text-gray-700">
-              Search
-            </Link>
-            <Link href="/upload" className="block text-gray-700">
-              Sell
-            </Link>
+            {disable ? (
+              <>
+                <div className="block text-gray-700 opacity-50 cursor-not-allowed">
+                  Browse
+                </div>
+                <div className="block text-gray-700 opacity-50 cursor-not-allowed">
+                  Search
+                </div>
+                <div className="block text-gray-700 opacity-50 cursor-not-allowed">
+                  Sell
+                </div>
+              </>
+            ) : (
+              <>
+                <Link href="/browse" className="block text-gray-700">
+                  Browse
+                </Link>
+                <Link href="/search" className="block text-gray-700">
+                  Search
+                </Link>
+                <Link href="/upload" className="block text-gray-700">
+                  Sell
+                </Link>
+              </>
+            )}
             {userEmail ? (
               <div className="flex items-center gap-3">
                 <div className="block text-gray-700">Hello, {userEmail}</div>
@@ -118,7 +165,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="block font-bold bg-[#C41E3A] px-3 py-2 rounded-md"
+                className="block text-white font-bold bg-red-600 px-3 py-2 rounded-md"
               >
                 Sign in
               </Link>
