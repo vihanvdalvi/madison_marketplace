@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import Image from "next/image";
-
+// import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 // -------------------- Firebase init (safe, single source) --------------------
 // Prefer runtime global __firebase_config (used elsewhere in the project) and fallback to NEXT_PUBLIC_FIREBASE_CONFIG
 const rawConfig =
@@ -58,12 +58,12 @@ interface Item {
 }
 
 // Reusable ItemCard (matches product card style used in browse)
-const ItemCard = ({ item }: { item: Item }) => (
+const ItemCard = ({ item }: { item: any }) => (
   <div className="border p-0 rounded-lg shadow-sm bg-white hover:shadow-md transition overflow-hidden">
     <div className="relative w-full h-48 bg-gray-100">
-      {item.imageUrl ? (
-        <Image
-          src={item.imageUrl}
+      {item.id ? (
+        <CldImage
+          src={"madison-marketplace/" + item.id}
           alt={item.title ?? "Product image"}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
@@ -124,7 +124,38 @@ export default function MarketplaceSearch() {
           return;
         }
         const data = await res.json();
-        setMatchedItems(Array.isArray(data) ? data : []);
+
+        // --------- CHANGED: populate imageUrl from Cloudinary publicId/id if missing ----------
+        // resolve cloud name and optional folder from runtime global or env
+        // const cloudName =
+        //   typeof window !== "undefined"
+        //     ? (window as any).__cloudinary?.cloudName ?? (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME as any)
+        //     : (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME as any);
+        // const uploadFolder = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_FOLDER ?? "";
+
+        // if (cloudName) {
+        //   items = items.map((it: any) => {
+        //     // only assign if no explicit imageUrl exists
+        //     if (!it.imageUrl) {
+        //       const pid = it.publicId ?? it.id;
+        //       if (pid) {
+        //         console.log("Generating imageUrl for pid:", pid);
+        //         // ensure file extension (assume .jpg if none)
+        //         const hasExt = /\.(jpg|jpeg|png|gif|webp)$/i.test(pid);
+        //         const ext = hasExt ? "" : ".jpg";
+        //         const folderSegment = uploadFolder ? `${encodeURIComponent(uploadFolder)}/` : "";
+        //         it.imageUrl = `https://res.cloudinary.com/${encodeURIComponent(
+        //           cloudName
+        //         )}/image/upload/${folderSegment}${encodeURIComponent(pid)}${ext}`;
+        //       }
+        //     }
+        //     return it;
+        //   });
+        // }
+        // console.log("Search matched items:", items);
+        console.log("Search matched items:", data);
+        setMatchedItems(data);
+        // --------- end CHANGED ----------
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error("Search fetch error:", err);
