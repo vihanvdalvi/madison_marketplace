@@ -14,7 +14,15 @@ import {
 
 declare const __app_id: string | undefined;
 
-// Read firebase config injected at runtime (prefer global set on window, else env)
+// Improved appId initialization for robustness
+const appId =
+  (typeof __app_id !== "undefined" && !!__app_id)
+    ? __app_id
+    : (typeof window !== "undefined" && !!(window as any).__app_id)
+      ? (window as any).__app_id
+      : "default-app-id";
+
+// Firebase config parsing
 const rawConfig =
   typeof window !== "undefined"
     ? (window as any).__firebase_config ?? (process.env.NEXT_PUBLIC_FIREBASE_CONFIG as any)
@@ -31,7 +39,6 @@ if (rawConfig) {
 }
 
 const hasFirebaseConfig = !!firebaseConfig && !!firebaseConfig.apiKey;
-const appId = typeof __app_id !== "undefined" ? (__app_id as string) : (typeof window !== "undefined" ? (window as any).__app_id ?? "default-app-id" : "default-app-id");
 
 let db: ReturnType<typeof getFirestore> | undefined;
 let auth: ReturnType<typeof getAuth> | undefined;
@@ -48,15 +55,46 @@ if (hasFirebaseConfig) {
   }
 }
 
-type Point = { t: number; p: number };
+function median(numbers: number[]): number {
+  if (!numbers.length) return 0;
+  const sorted = numbers.slice().sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+  return sorted[mid];
+}
+
+// More robust similarity and sold checks
+function isCategorySimilar(categories: any, search: string): boolean {
+  if (!categories || !search) return false;
+  const term = search.trim().toLowerCase();
+  if (Array.isArray(categories)) {
+    return categories.some(cat =>
+      typeof cat === "string" && cat.toLowerCase().includes(term)
+    );
+  }
+  if (typeof categories === "string") {
+    return categories.toLowerCase().includes(term);
+  }
+  return false;
+}
+
+function isSold(item: any): boolean {
+  // Check both field variants, supporting boolean or string 'sold'
+  return item.sold === true ||
+    (typeof item.status === "string" && item.status.toLowerCase() === "sold");
+}
 
 export default function PriceTrends({ category }: { category: string }) {
-  const [points, setPoints] = useState<Point[]>([]);
+  const [medianPrice, setMedianPrice] = useState<number>(0);
+  const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!category || category.trim().length === 0) {
-      setPoints([]);
+      setMedianPrice(0);
+      setCount(0);
       return;
     }
 
@@ -71,39 +109,37 @@ export default function PriceTrends({ category }: { category: string }) {
         }
 
         if (!db) {
-          if (!cancelled) setPoints([]);
+          if (!cancelled) {
+            setMedianPrice(0);
+            setCount(0);
+          }
           return;
         }
 
         const itemsRef = collection(db, "artifacts", appId, "public", "data", "items");
-        // find items where caption or category contains the provided string
-        // Firestore can't do contains substring queries; we query a set and filter client-side
-        const qRef = q(itemsRef, orderBy("createdAt", "asc"), limitFn(200));
+        // fetch many and filter client-side
+        const qRef = q(itemsRef, orderBy("price", "asc"), limitFn(200));
         const snap = await getDocs(qRef);
-        const fetched = snap.docs
-          .map((d) => ({ id: d.id, ...(d.data() as any) }))
-          .filter((it) => {
-            const caption = (it.caption || "").toString().toLowerCase();
-            const cat = (it.category || it.main_category || "").toString().toLowerCase();
-            const term = category.toLowerCase();
-            return caption.includes(term) || cat.includes(term);
-          })
-          .map((it) => {
-            // normalize createdAt
-            let t = Date.now();
-            if (it.createdAt && typeof it.createdAt.toDate === "function") {
-              t = it.createdAt.toDate().getTime();
-            } else if (it.createdAt) {
-              t = new Date(it.createdAt).getTime();
-            }
-            const p = Number(it.price) || 0;
-            return { t, p };
-          });
+        const fetched = snap.docs.map((d) => d.data());
+        const filtered = fetched.filter(
+          (item) =>
+            isCategorySimilar(item.categories, category) &&
+            isSold(item)
+        );
+        const priceArray = filtered
+          .map((item) => Number(item.price) || 0)
+          .filter((x) => x > 0);
 
-        if (!cancelled) setPoints(fetched);
+        if (!cancelled) {
+          setMedianPrice(median(priceArray));
+          setCount(priceArray.length);
+        }
       } catch (err) {
         console.error("PriceTrends fetch failed", err);
-        if (!cancelled) setPoints([]);
+        if (!cancelled) {
+          setMedianPrice(0);
+          setCount(0);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -117,55 +153,23 @@ export default function PriceTrends({ category }: { category: string }) {
 
   if (!category) return null;
 
-  // Simple SVG line chart
-  const width = 800;
-  const height = 180;
-  const padding = 32;
-
-  const xs = points.map((pt) => pt.t);
-  const ys = points.map((pt) => pt.p);
-
-  const minX = xs.length ? Math.min(...xs) : 0;
-  const maxX = xs.length ? Math.max(...xs) : Date.now();
-  const minY = ys.length ? Math.min(...ys) : 0;
-  const maxY = ys.length ? Math.max(...ys) : 1;
-
-  const xScale = (t: number) => {
-    if (maxX === minX) return padding + (width - 2 * padding) / 2;
-    return (
-      padding + ((t - minX) / (maxX - minX)) * (width - 2 * padding)
-    );
-  };
-  const yScale = (p: number) => {
-    if (maxY === minY) return height - padding;
-    return (
-      height - padding - ((p - minY) / (maxY - minY)) * (height - 2 * padding)
-    );
-  };
-
-  const pointsStr = points.map((pt) => `${xScale(pt.t)},${yScale(pt.p)}`).join(" ");
-
   return (
-    <div className="w-full overflow-x-auto py-6">
+    <div className="w-full py-6">
       <div className="max-w-5xl mx-auto bg-white p-4 rounded shadow">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold">Price Trend: {category}</h3>
-          <div className="text-sm text-gray-500">{loading ? "Loading…" : `${points.length} points`}</div>
+          <h3 className="font-semibold">Median Price (sold, similar categories): {category}</h3>
+          <div className="text-sm text-gray-500">
+            {loading ? "Loading…" : `${count} prices`}
+          </div>
         </div>
-        {points.length === 0 ? (
-          <div className="text-sm text-gray-500">No historical price data found for this category.</div>
+        {count === 0 ? (
+          <div className="text-sm text-gray-500">
+            No sold price data found for similar categories.
+          </div>
         ) : (
-          <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-            {/* axes */}
-            <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#e5e7eb" />
-            <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#e5e7eb" />
-            {/* polyline */}
-            <polyline fill="none" stroke="#C41E3A" strokeWidth={2} points={pointsStr} />
-            {/* circles */}
-            {points.map((pt, i) => (
-              <circle key={i} cx={xScale(pt.t)} cy={yScale(pt.p)} r={3} fill="#C41E3A" />
-            ))}
-          </svg>
+          <div className="text-xl font-bold text-cyan-700">
+            ${medianPrice.toFixed(2)}
+          </div>
         )}
       </div>
     </div>
