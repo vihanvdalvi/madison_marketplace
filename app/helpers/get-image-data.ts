@@ -20,6 +20,8 @@ export const getData = async (tags: String[], inverse: boolean = false) => {
       element.context.caption != null ? element.context.caption : "";
     let description = element.context.alt != null ? element.context.alt : "";
     let price = element.context.price != null ? element.context.price : "";
+    let userEmail =
+      element.context.userEmail != null ? element.context.userEmail : "";
     let data = {
       id: id,
       picture: picture,
@@ -28,6 +30,7 @@ export const getData = async (tags: String[], inverse: boolean = false) => {
       caption: caption,
       description: description,
       price: price,
+      userEmail: userEmail,
     };
     picData.push(data);
   });
@@ -45,6 +48,7 @@ export const getDataFromId = async (id: string) => {
     caption: any;
     description: any;
     price: any;
+    userEmail: any;
   } = {
     id: element.public_id,
     picture: element.url,
@@ -53,6 +57,8 @@ export const getDataFromId = async (id: string) => {
     caption: element.context.caption != null ? element.context.caption : "",
     description: element.context.alt != null ? element.context.alt : "",
     price: element.context.price != null ? element.context.price : "",
+    userEmail:
+      element.context.userEmail != null ? element.context.userEmail : "",
   };
   return picData;
 };

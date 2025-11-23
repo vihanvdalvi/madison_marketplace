@@ -1,6 +1,6 @@
 import { getDataFromId } from "@/app/helpers/get-image-data";
 import PicInfoPage from "./pic-info";
-import Payments from "@/app/components/payments";
+import Payments from "@/app/payment/page";
 
 export default async function ListingPage({
   params,
@@ -16,6 +16,7 @@ export default async function ListingPage({
     caption: any;
     description: any;
     price: any;
+    userEmail: any;
   } = await getDataFromId(id.toString());
 
   if (imageData.id == "image not found") {
@@ -39,7 +40,7 @@ export default async function ListingPage({
           {imageData.caption}
         </div>
         <div className="text-2xl md:text-3xl font-semibold text-center my-10">
-          USER INFO PLACEHOLDER
+          {imageData.userEmail ? `Seller: ${imageData.userEmail}` : ""}
         </div>
         <div className="mt-6">
           <Payments itemId={imageData.id} price={imageData.price} />
