@@ -41,15 +41,15 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
 
   return (
     <section className="w-full items-center mb-0">
-      <div className="w-full overflow-clip" ref={emblaRef}>
+      <div className="w-full" ref={emblaRef}>
         {/* counter the slide horizontal padding so slides align flush on mobile */}
-        <div className="flex md:-ml-4 backface-hidden touch-pan-y">
+        <div className="flex -ml-4 backface-hidden touch-pan-y">
           {slides.map((data) => (
             <Link
               key={data.id}
               href={`/listings/${data.id.replace("madison-marketplace/", "")}`}
             >
-              <div className="flex md:m-4 flex-col flex-none w-full px-4 md:w-[150px] lg:w-[200px] overflow-hidden hover:scale-110 transition-transform duration-300">
+              <div className="flex flex-col flex-none w-screen px-4 md:w-[150px] lg:w-[200px] hover:scale-110 transition-transform duration-300">
                 <CldImage
                   src={data.picture}
                   width={data.width}

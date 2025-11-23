@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
+import { useUser } from "./context/UserContext";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const { userEmail } = useUser();
 
   return (
     <header className="w-full bg-[#EDE8D0] backdrop-blur-sm border-b">
@@ -34,15 +36,21 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-4 ">
-            <div className="hidden md:flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-3 h-16">
-                <Link
-                  href="/login"
-                  className="text-sm leading-none text-gray-700 hover:text-gray-900"
-                >
-                  Sign in
-                </Link>
-              </div>
+            <div className="hidden md:flex items-center gap-3 h-16">
+              {userEmail ? (
+                <span className="text-sm text-gray-700">
+                  Hello, {userEmail}
+                </span>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="block bg-[#C41E3A] px-3 py-2 rounded-md"
+                  >
+                    Sign in
+                  </Link>
+                </>
+              )}
             </div>
 
             <button
@@ -80,12 +88,18 @@ export default function Navbar() {
             <Link href="/about" className="block text-gray-700">
               About
             </Link>
-            <Link href="/signin" className="block text-gray-700">
-              Sign in
-            </Link>
-            <Link href="/signup" className="block text-gray-700">
-              Get started
-            </Link>
+            {userEmail ? (
+              <div className="block text-gray-700">Hello, {userEmail}</div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="block font-bold bg-[#C41E3A] px-3 py-2 rounded-md"
+                >
+                  Sign in
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
