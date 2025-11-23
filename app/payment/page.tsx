@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 
 // `setSold` is a server-side helper; call it via the server API route below.
 
@@ -19,20 +20,20 @@ function luhnCheck(cardNumber: string) {
   }
   return sum % 10 === 0;
 }
+export default function Payments() {
+  const params = useParams();
+  const itemId = params?.itemId ?? "";
 
-export default function Payments({
-  itemId,
-  price,
-}: {
-  itemId: string;
-  price?: number;
-}) {
-  const [name, setName] = useState("");
-  const [card, setCard] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+const searchParams = useSearchParams();
+const priceParam = searchParams?.get("price");
+const price = priceParam ? Number(priceParam) : undefined;
+
+const [name, setName] = useState("");
+const [card, setCard] = useState("");
+const [expiry, setExpiry] = useState("");
+const [cvc, setCvc] = useState("");
+const [loading, setLoading] = useState(false);
+const [message, setMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,10 +46,12 @@ export default function Payments({
     if (!/^\d{1,2}\/\d{2}$/.test(expiry))
       return setMessage("Expiry must be MM/YY.");
     setLoading(true);
-    try {
+      try {
       // Simulate payment processing and then notify the server to mark item as sold
 
-      let req_id = itemId.replace("madison-marketplace/", "");
+      // Ensure itemId is a string (it can be string | string[])
+      const itemIdStr = Array.isArray(itemId) ? itemId[0] ?? "" : itemId;
+      const req_id = itemIdStr.replace("madison-marketplace/", "");
 
       const res = await fetch("/api/set-sold", {
         method: "POST",

@@ -7,27 +7,46 @@ import {
   getFirestore,
   collection,
   query as q,
-  where,
   orderBy,
   getDocs,
   limit as limitFn,
 } from "firebase/firestore";
 
-declare const __firebase_config: string | undefined;
 declare const __app_id: string | undefined;
 
-const firebaseConfig = JSON.parse(typeof __firebase_config !== "undefined" ? (__firebase_config as string) : "{}");
-const appId = typeof __app_id !== "undefined" ? (__app_id as string) : "default-app-id";
+// Read firebase config injected at runtime (prefer global set on window, else env)
+const rawConfig =
+  typeof window !== "undefined"
+    ? (window as any).__firebase_config ?? (process.env.NEXT_PUBLIC_FIREBASE_CONFIG as any)
+    : (process.env.NEXT_PUBLIC_FIREBASE_CONFIG as any);
 
-if (getApps().length === 0) {
+let firebaseConfig: Record<string, any> = {};
+if (rawConfig) {
   try {
-    initializeApp(firebaseConfig);
+    firebaseConfig = typeof rawConfig === "string" ? JSON.parse(rawConfig) : rawConfig;
   } catch (e) {
-    // ignore
+    console.error("Failed to parse firebase config:", e);
+    firebaseConfig = {};
   }
 }
 
-const db = getFirestore();
+const hasFirebaseConfig = !!firebaseConfig && !!firebaseConfig.apiKey;
+const appId = typeof __app_id !== "undefined" ? (__app_id as string) : (typeof window !== "undefined" ? (window as any).__app_id ?? "default-app-id" : "default-app-id");
+
+let db: ReturnType<typeof getFirestore> | undefined;
+let auth: ReturnType<typeof getAuth> | undefined;
+
+if (hasFirebaseConfig) {
+  try {
+    if (getApps().length === 0) initializeApp(firebaseConfig);
+    auth = getAuth();
+    db = getFirestore();
+  } catch (e) {
+    console.error("Firebase init error:", e);
+    auth = undefined;
+    db = undefined;
+  }
+}
 
 type Point = { t: number; p: number };
 
@@ -46,9 +65,14 @@ export default function PriceTrends({ category }: { category: string }) {
       setLoading(true);
       try {
         try {
-          await signInAnonymously(getAuth());
+          if (auth) await signInAnonymously(auth);
         } catch (e) {
-          // ignore
+          // ignore anonymous sign-in errors
+        }
+
+        if (!db) {
+          if (!cancelled) setPoints([]);
+          return;
         }
 
         const itemsRef = collection(db, "artifacts", appId, "public", "data", "items");
