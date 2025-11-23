@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       contextParts.push(`pickup_location=${pickup_location}`);
     if (price !== undefined && price !== null)
       contextParts.push(`price=${price}`);
+    if (userEmail != null) contextParts.push(`userEmail=${userEmail}`);
     formData.append("context", contextParts.join("|"));
 
     // Build tags string; include price and pickup_location as tags if provided

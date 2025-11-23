@@ -8,7 +8,9 @@ import { getAuth, signInAnonymously } from "firebase/auth";
 // Read firebase config injected at runtime (same pattern used elsewhere)
 declare const __firebase_config: string | undefined;
 declare const __app_id: string | undefined;
-const firebaseConfig = JSON.parse(typeof __firebase_config !== "undefined" ? __firebase_config : "{}");
+const firebaseConfig = JSON.parse(
+  typeof __firebase_config !== "undefined" ? __firebase_config : "{}"
+);
 const appId = typeof __app_id !== "undefined" ? __app_id : "default-app-id";
 
 const app = initializeApp(firebaseConfig);
@@ -31,7 +33,13 @@ function luhnCheck(cardNumber: string) {
   return sum % 10 === 0;
 }
 
-export default function Payments({ itemId, price }: { itemId: string; price?: number }) {
+export default function Payments({
+  itemId,
+  price,
+}: {
+  itemId: string;
+  price?: number;
+}) {
   const [name, setName] = useState("");
   const [card, setCard] = useState("");
   const [expiry, setExpiry] = useState("");
@@ -47,7 +55,8 @@ export default function Payments({ itemId, price }: { itemId: string; price?: nu
     if (!name.trim()) return setMessage("Please enter the cardholder's name.");
     if (!luhnCheck(card)) return setMessage("Invalid card number.");
     if (!/^\d{3,4}$/.test(cvc)) return setMessage("Invalid CVC.");
-    if (!/^\d{1,2}\/\d{2}$/.test(expiry)) return setMessage("Expiry must be MM/YY.");
+    if (!/^\d{1,2}\/\d{2}$/.test(expiry))
+      return setMessage("Expiry must be MM/YY.");
 
     setLoading(true);
 
@@ -56,11 +65,21 @@ export default function Payments({ itemId, price }: { itemId: string; price?: nu
       await signInAnonymously(auth);
 
       // Update the item's document to mark sold. We set both `sold: true` and `status: 'sold'`
-      const docRef = doc(db, "artifacts", appId, "public", "data", "items", itemId);
+      const docRef = doc(
+        db,
+        "artifacts",
+        appId,
+        "public",
+        "data",
+        "items",
+        itemId
+      );
       await updateDoc(docRef, { sold: true, status: "sold" });
 
       setMessage(
-        `Payment simulated for ${price ? `$${price}` : "this item"}. Item marked as sold.`
+        `Payment simulated for ${
+          price ? `$${price}` : "this item"
+        }. Item marked as sold.`
       );
     } catch (err: any) {
       console.error("Failed to mark item sold", err);
@@ -78,7 +97,9 @@ export default function Payments({ itemId, price }: { itemId: string; price?: nu
   return (
     <div className="w-full max-w-md p-6 bg-white rounded-lg shadow">
       <h2 className="text-xl font-semibold mb-4">Complete Payment</h2>
-      <p className="text-sm text-gray-600 mb-4">Price: {price ? `$${price}` : "—"}</p>
+      <p className="text-sm text-gray-600 mb-4">
+        Price: {price ? `$${price}` : "—"}
+      </p>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label className="text-sm">Cardholder Name</label>
