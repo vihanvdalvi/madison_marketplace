@@ -1,5 +1,6 @@
 import { getDataFromId } from "@/app/helpers/get-image-data";
 import PicInfoPage from "./pic-info";
+import Payments from "@/app/components/payments";
 
 export default async function ListingPage({
   params,
@@ -40,12 +41,9 @@ export default async function ListingPage({
         <div className="text-2xl md:text-3xl font-semibold text-center my-10">
           USER INFO PLACEHOLDER
         </div>
-        <button>
-          <div className="text-3xl md:text-4xl p-6 px-8 bg-[#C41E3A] rounded-2xl mt-5 md:mt-20 hover:bg-[#9E1A2D] text-black font-bold transition-colors duration-300 w-fit text-center">
-            BUY FOR{" "}
-            {imageData.price ? `$${imageData.price}` : "Price not available"}
-          </div>
-        </button>
+        <div className="mt-6">
+          <Payments itemId={imageData.id} price={imageData.price} />
+        </div>
       </div>
     </div>
   );
