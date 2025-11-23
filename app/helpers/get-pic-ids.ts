@@ -1,6 +1,7 @@
 import cloudinary from "./cloudinary";
 import { cache } from "react";
-export const getPicIds = cache(
+
+export const getPicDataFromTag = cache(
   async (tags: String[], inverse: boolean = false) => {
     let tags_str = "";
     if (inverse) {
@@ -22,3 +23,14 @@ export const getPicIds = cache(
     return results.resources;
   }
 );
+
+export const getPicDataFromId = async (id: string) => {
+  id = "madison-marketplace/" + id;
+  console.log("Fetching data for ID:", id);
+  let result = await cloudinary.v2.search
+    .expression(`public_id:${id}`)
+    .with_field("context")
+    .execute();
+  console.log("Resources", result.resources);
+  return result.resources[0];
+};
