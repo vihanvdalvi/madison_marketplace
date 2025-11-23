@@ -72,52 +72,54 @@ export default function Payments({
   };
 
   return (
-    <div className="w-full max-w-md p-6 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-semibold mb-4">Complete Payment</h2>
-      <p className="text-sm text-gray-600 mb-4">
+    <div className="w-full max-w-md p-6 bg-white/60 backdrop-blur-md rounded-xl shadow-lg border border-white/30">
+      <h2 className="text-xl font-semibold mb-2 text-gray-900">
+        Complete Payment
+      </h2>
+      <p className="text-sm text-gray-700 mb-4">
         Price: {price ? `$${price}` : "—"}
       </p>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="text-sm">Cardholder Name</label>
+          <label className="text-sm text-gray-700">Cardholder Name</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full p-2 border rounded mt-1"
+            className="w-full p-3 rounded-lg bg-white/80 border border-white/40 focus:ring-2 focus:ring-red-200 outline-none mt-1"
             placeholder="Jane Q. Student"
             required
           />
         </div>
 
         <div>
-          <label className="text-sm">Card Number</label>
+          <label className="text-sm text-gray-700">Card Number</label>
           <input
             value={card}
             onChange={(e) => setCard(e.target.value)}
-            className="w-full p-2 border rounded mt-1"
+            className="w-full p-3 rounded-lg bg-white/80 border border-white/40 focus:ring-2 focus:ring-red-200 outline-none mt-1"
             placeholder="4242 4242 4242 4242"
             inputMode="numeric"
             required
           />
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <div className="flex-1">
-            <label className="text-sm">Expiry (MM/YY)</label>
+            <label className="text-sm text-gray-700">Expiry (MM/YY)</label>
             <input
               value={expiry}
               onChange={(e) => setExpiry(e.target.value)}
-              className="w-full p-2 border rounded mt-1"
+              className="w-full p-3 rounded-lg bg-white/80 border border-white/40 focus:ring-2 focus:ring-red-200 outline-none mt-1"
               placeholder="08/28"
               required
             />
           </div>
           <div style={{ width: 110 }}>
-            <label className="text-sm">CVC</label>
+            <label className="text-sm text-gray-700">CVC</label>
             <input
               value={cvc}
               onChange={(e) => setCvc(e.target.value)}
-              className="w-full p-2 border rounded mt-1"
+              className="w-full p-3 rounded-lg bg-white/80 border border-white/40 focus:ring-2 focus:ring-red-200 outline-none mt-1"
               placeholder="123"
               inputMode="numeric"
               required
@@ -129,7 +131,7 @@ export default function Payments({
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 bg-[#C41E3A] text-white rounded hover:bg-[#9E1A2D] disabled:opacity-60"
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-60 shadow-md transform-gpu hover:-translate-y-0.5"
           >
             {loading ? "Processing…" : `Pay ${price ? `$${price}` : "Now"}`}
           </button>

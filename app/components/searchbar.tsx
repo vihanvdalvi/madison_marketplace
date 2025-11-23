@@ -62,28 +62,33 @@ interface Item {
 
 // Reusable ItemCard (matches product card style used in browse)
 const ItemCard = ({ item }: { item: any }) => (
-  <div className="border p-0 rounded-lg shadow-sm bg-white hover:shadow-md hover:scale-105 transition overflow-hidden">
-    <div className="relative w-full h-48 bg-gray-100">
+  <div className="relative overflow-hidden rounded-2xl shadow-lg bg-white/60 backdrop-blur-md border border-white/30 transform-gpu hover:scale-105 transition">
+    <div className="relative w-full h-48 bg-gradient-to-br from-white/50 to-white/30">
       {item.id ? (
         <CldImage
           src={"madison-marketplace/" + item.id}
           alt={item.title ?? "Product image"}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
-          className="object-cover"
+          className="object-cover rounded-t-xl"
         />
       ) : (
         <div className="flex items-center justify-center w-full h-full text-gray-400">
           No image
         </div>
       )}
+
+      <div className="absolute left-3 bottom-3 bg-linear-to-r from-white/80 to-white/60 text-sm font-semibold text-gray-900 px-3 py-1 rounded-full shadow">
+        ${item.price ?? "—"}
+      </div>
     </div>
 
     <div className="p-4">
-      <div className="flex justify-between items-start mb-2">
-        <span className="text-sm font-bold text-green-700">
-          ${item.price ?? "—"}
-        </span>
+      <div className="flex flex-col">
+        <div className="text-md font-semibold text-gray-800 truncate">
+          {item.title ?? item.category ?? "Untitled"}
+        </div>
+        <div className="text-sm text-gray-500 mt-1">{item.category}</div>
       </div>
     </div>
   </div>
@@ -171,13 +176,18 @@ export default function MarketplaceSearch() {
     <div className="p-8 max-w-4xl mx-auto font-sans">
       <h1 className="text-3xl font-bold mb-4">Available Products</h1>
 
-      <input
-        type="text"
-        placeholder="Type a single keyword that matches a category word..."
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        className="w-full p-3 border rounded-lg text-lg focus:ring-2 focus:ring-blue-500 outline-none mb-3"
-      />
+      <div className="relative mb-4">
+        <input
+          type="text"
+          placeholder="Search categories, e.g. 'electronics'"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="w-full p-3 rounded-xl text-lg bg-white/60 backdrop-blur-sm border border-white/30 outline-none shadow-inner focus:shadow-outline transition placeholder-gray-500"
+        />
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+          ⌘K
+        </div>
+      </div>
 
       {apiError && searchText.trim() !== "" && (
         <div className="mb-4 p-2 text-sm text-yellow-800 bg-yellow-50 border rounded">
@@ -195,7 +205,11 @@ export default function MarketplaceSearch() {
           {/* optional card view */}
           <div className="grid grid-cols-1 md:grid-cols-2 mt-2 lg:grid-cols-3 gap-4">
             {matchedItems.map((item) => (
-              <Link href={`/listings/${item.id}`} key={item.id}>
+              <Link
+                href={`/listings/${item.id}`}
+                key={item.id}
+                className="transform-gpu hover:scale-105 transition"
+              >
                 <ItemCard key={item.id} item={item} />
               </Link>
             ))}

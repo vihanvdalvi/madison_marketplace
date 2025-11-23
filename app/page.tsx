@@ -15,8 +15,10 @@ export default function Home() {
   }, [userEmail, router]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#EDE8D0] font-sans">
-      <p className="text-gray-600">Redirecting…</p>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#EDE8D0] via-white to-[#F6F1E6] font-sans">
+      <div className="bg-white/60 backdrop-blur-md rounded-2xl p-8 shadow-lg border border-white/30 animate-pulse">
+        <p className="text-gray-700">Checking session…</p>
+      </div>
     </div>
   );
 }

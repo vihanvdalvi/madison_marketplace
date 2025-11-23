@@ -49,31 +49,39 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
               key={data.id}
               href={`/listings/${data.id.replace("madison-marketplace/", "")}`}
             >
-              <div className="flex flex-col flex-none w-screen px-4 md:w-[150px] lg:w-[200px] hover:scale-110 transition-transform duration-300">
-                <CldImage
-                  src={data.picture}
-                  width={data.width}
-                  height={data.height}
-                  alt={data.description}
-                  quality={"auto"}
-                  sizes={"25vw"}
-                  format="auto"
-                  rawTransformations={["ar_1,c_crop"]}
-                  className="md:aspect-auto w-full block min-h-0 object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
-                />
-                <div className="flex flex-col w-full h-fit">
-                  <div className="md:aspect-auto pt-2 w-full text-lg font-semibold text-gray-700">
-                    {data.description
-                      .split(" ")
-                      .map(
-                        (word: string) =>
-                          word.charAt(0).toUpperCase() +
-                          word.slice(1).toLowerCase()
-                      )
-                      .join(" ")}
+              <div className="flex flex-col flex-none w-full md:w-[150px] lg:w-[200px] px-4 md:px-2 transform-gpu transition hover:scale-105">
+                <div className="bg-white/60 backdrop-blur-sm rounded-xl overflow-hidden shadow-md border border-white/20">
+                  <div className="relative w-full h-40 bg-gradient-to-br from-white/50 to-white/30">
+                    <CldImage
+                      src={data.picture}
+                      width={data.width}
+                      height={data.height}
+                      alt={data.description}
+                      quality={"auto"}
+                      sizes={"25vw"}
+                      format="auto"
+                      rawTransformations={["ar_1,c_crop"]}
+                      className="w-full h-full object-cover rounded-t-xl"
+                    />
+                    <div className="absolute left-3 bottom-3 bg-white/70 text-sm font-semibold text-gray-900 px-3 py-1 rounded-full shadow">
+                      {data.price ? `$${data.price}` : "—"}
+                    </div>
                   </div>
-                  <div className="text-md text-gray-500">
-                    {data.price ? `$${data.price}` : ""}
+
+                  <div className="p-3">
+                    <div className="text-sm font-semibold text-gray-800 truncate">
+                      {data.description
+                        .split(" ")
+                        .map(
+                          (word: string) =>
+                            word.charAt(0).toUpperCase() +
+                            word.slice(1).toLowerCase()
+                        )
+                        .join(" ")}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {data.caption}
+                    </div>
                   </div>
                 </div>
               </div>

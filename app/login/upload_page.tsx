@@ -151,7 +151,7 @@ export default function ImageTagger() {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white/60 backdrop-blur-md rounded-2xl shadow-lg p-8 border border-white/30">
           {!preview ? (
             <label className="flex flex-col items-center justify-center border-2 border-dashed border-red-600 rounded-xl p-12 cursor-pointer hover:border-red-700 hover:bg-red-50 transition-all">
               <Upload className="w-16 h-16 text-red-400 mb-4" />
@@ -174,11 +174,11 @@ export default function ImageTagger() {
                 <img
                   src={preview}
                   alt="Preview"
-                  className="w-full h-64 object-contain bg-gray-50 rounded-lg"
+                  className="w-full h-64 object-contain bg-gray-50 rounded-lg shadow-inner"
                 />
                 <button
                   onClick={clearImage}
-                  className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors"
+                  className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors shadow"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -211,7 +211,7 @@ export default function ImageTagger() {
               )}
 
               {tags && (
-                <div className="bg-linear-to-br from-indigo-50 to-purple-50 rounded-xl p-6 space-y-4">
+                <div className="bg-white/50 backdrop-blur-sm rounded-xl p-6 space-y-4 border border-white/20 shadow-sm">
                   <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                     <Tag className="w-5 h-5" />
                     Generated Tags (Editable)
@@ -228,7 +228,7 @@ export default function ImageTagger() {
                         onChange={(e) =>
                           setTags({ ...tags, main_category: e.target.value })
                         }
-                        className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full mt-1 px-3 py-2 rounded-lg bg-white/80 border border-white/30 focus:outline-none focus:ring-2 focus:ring-red-200"
                       />
                     </div>
                     <div>
@@ -241,7 +241,7 @@ export default function ImageTagger() {
                         onChange={(e) =>
                           setTags({ ...tags, specific_item: e.target.value })
                         }
-                        className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full mt-1 px-3 py-2 rounded-lg bg-white/80 border border-white/30 focus:outline-none focus:ring-2 focus:ring-red-200"
                       />
                     </div>
                     <div>
@@ -254,7 +254,7 @@ export default function ImageTagger() {
                         onChange={(e) =>
                           setTags({ ...tags, color: e.target.value })
                         }
-                        className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full mt-1 px-3 py-2 rounded-lg bg-white/80 border border-white/30 focus:outline-none focus:ring-2 focus:ring-red-200"
                       />
                     </div>
                     <div>
@@ -267,7 +267,7 @@ export default function ImageTagger() {
                         onChange={(e) =>
                           setTags({ ...tags, material: e.target.value })
                         }
-                        className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full mt-1 px-3 py-2 rounded-lg bg-white/80 border border-white/30 focus:outline-none focus:ring-2 focus:ring-red-200"
                       />
                     </div>
                   </div>
@@ -283,7 +283,7 @@ export default function ImageTagger() {
                         onChange={(e) =>
                           setTags({ ...tags, price: e.target.value })
                         }
-                        className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full mt-1 px-3 py-2 rounded-lg bg-white/80 border border-white/30 focus:outline-none focus:ring-2 focus:ring-red-200"
                         placeholder="e.g. 19.99"
                       />
                     </div>
@@ -297,7 +297,7 @@ export default function ImageTagger() {
                         onChange={(e) =>
                           setTags({ ...tags, pickup_location: e.target.value })
                         }
-                        className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full mt-1 px-3 py-2 rounded-lg bg-white/80 border border-white/30 focus:outline-none focus:ring-2 focus:ring-red-200"
                         placeholder="Address or meetup spot"
                       />
                     </div>
@@ -313,7 +313,7 @@ export default function ImageTagger() {
                         setTags({ ...tags, description: e.target.value })
                       }
                       rows={3}
-                      className="w-full mt-1 px-3 py-2 border border-indigo-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full mt-1 px-3 py-2 rounded-lg bg-white/80 border border-white/30 focus:outline-none focus:ring-2 focus:ring-red-200"
                     />
                   </div>
 
@@ -321,7 +321,7 @@ export default function ImageTagger() {
                     <button
                       onClick={saveImage}
                       disabled={loading}
-                      className="flex-1 bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 bg-red-600 text-white py-2 rounded-lg font-medium hover:bg-red-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-2 shadow-md transform-gpu hover:-translate-y-0.5"
                     >
                       {loading ? (
                         <>

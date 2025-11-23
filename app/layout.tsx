@@ -28,12 +28,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} bg-[#EDE8D0] antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} bg-gradient-to-br from-[#EDE8D0] via-white to-[#F6F1E6] antialiased min-h-screen`}
       >
         <UserProvider>
           <AuthRedirect />
           <Navbar />
-          {children}
+
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div
+              className="bg-white/60 backdrop-blur-md rounded-2xl shadow-lg border border-white/30 overflow-hidden animate-fade-in"
+              style={{ animationDuration: "300ms" }}
+            >
+              {children}
+            </div>
+          </main>
         </UserProvider>
       </body>
     </html>

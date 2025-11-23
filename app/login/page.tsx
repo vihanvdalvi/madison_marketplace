@@ -111,40 +111,52 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#EDE8D0] p-6">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-6">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
-          {mode === "login" ? "Badger Login" : "Join the Market"}
+    <div className="min-h-screen flex items-start justify-center bg-[#EDE8D0] p-6 pt-24">
+      <div className="w-full max-w-md bg-white/60 backdrop-blur-md rounded-3xl shadow-lg border border-white/20 p-8">
+        <h2 className="text-3xl font-semibold text-gray-800 mb-4 text-center">
+          Badger Login
         </h2>
 
-        {/* Toggle Buttons */}
-        <div className="flex items-center gap-2 mb-6">
-          <button
-            onClick={() => {
-              setMode("login");
-              setError(null);
-            }}
-            className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
-              mode === "login"
-                ? "bg-red-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => {
-              setMode("create");
-              setError(null);
-            }}
-            className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
-              mode === "create"
-                ? "bg-red-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
-          >
-            Sign Up
-          </button>
+        {/* Segmented Toggle with sliding indicator */}
+        <div className="relative mb-6 p-1 rounded-full bg-white/10">
+          {/* sliding pill */}
+          <div
+            className={
+              "absolute inset-y-1 left-1 w-1/2 rounded-full bg-red-600 shadow-md transform transition-transform duration-500 ease-in-out " +
+              (mode === "create" ? "translate-x-full" : "translate-x-0")
+            }
+            aria-hidden
+          />
+
+          <div className="relative flex">
+            <button
+              onClick={() => {
+                setMode("login");
+                setError(null);
+              }}
+              className={`w-1/2 py-2 rounded-full font-medium relative z-10 transition-colors text-sm ${
+                mode === "login"
+                  ? "text-white"
+                  : "text-gray-700 hover:text-gray-900"
+              }`}
+            >
+              Login
+            </button>
+
+            <button
+              onClick={() => {
+                setMode("create");
+                setError(null);
+              }}
+              className={`w-1/2 py-2 rounded-full font-medium relative z-10 transition-colors text-sm ${
+                mode === "create"
+                  ? "text-white"
+                  : "text-gray-700 hover:text-gray-900"
+              }`}
+            >
+              Sign Up
+            </button>
+          </div>
         </div>
 
         {/* Error Message */}
@@ -156,7 +168,7 @@ export default function LoginPage() {
 
         {/* Login Form */}
         {mode === "login" ? (
-          <form onSubmit={onSubmitLogin} className="space-y-4">
+          <form onSubmit={onSubmitLogin} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 NetID Email
@@ -165,8 +177,9 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="mt-2 block w-full rounded-xl bg-white/40 backdrop-blur-sm border border-white/20 px-4 py-3 text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="badger@wisc.edu"
+                autoComplete="username"
               />
             </div>
 
@@ -178,22 +191,23 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="mt-2 block w-full rounded-xl bg-white/40 backdrop-blur-sm border border-white/20 px-4 py-3 text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="Enter password"
+                autoComplete="current-password"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 rounded-md bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-60 transition-colors"
+              className="w-full py-3 rounded-xl bg-red-600 text-white font-semibold shadow-md hover:shadow-lg transform-gpu hover:-translate-y-0.5 disabled:opacity-60 transition-all"
             >
               {loading ? "Verifying..." : "Sign In"}
             </button>
           </form>
         ) : (
           /* Create Account Form */
-          <form onSubmit={onSubmitCreate} className="space-y-4">
+          <form onSubmit={onSubmitCreate} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 NetID Email
@@ -202,10 +216,11 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="mt-2 block w-full rounded-xl bg-white/40 backdrop-blur-sm border border-white/20 px-4 py-3 text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="badger@wisc.edu"
+                autoComplete="username"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-2">
                 Must be a valid @wisc.edu address
               </p>
             </div>
@@ -218,27 +233,42 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="mt-2 block w-full rounded-xl bg-white/40 backdrop-blur-sm border border-white/20 px-4 py-3 text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
                 placeholder="Create strong password"
+                autoComplete="new-password"
               />
+              <p className="text-xs text-gray-500 mt-2">
+                Passwords should be 12+ characters, include an uppercase letter,
+                a number, and a special character.
+              </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="Repeat password"
-              />
-              {confirmPassword && !passwordsMatch && (
-                <p className="text-xs text-red-600 mt-1">
-                  Passwords do not match.
-                </p>
-              )}
+            {/* Collapsible confirm-password area (safe, isolated change) */}
+            <div
+              className="overflow-hidden"
+              style={{
+                maxHeight: mode === "create" ? 220 : 0,
+                transition: "max-height 600ms ease",
+              }}
+            >
+              <div className="pt-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="mt-2 block w-full rounded-xl bg-white/40 backdrop-blur-sm border border-white/20 px-4 py-3 text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="Repeat password"
+                  autoComplete="new-password"
+                />
+                {confirmPassword && !passwordsMatch && (
+                  <p className="text-xs text-red-600 mt-2">
+                    Passwords do not match.
+                  </p>
+                )}
+              </div>
             </div>
 
             <button
@@ -246,7 +276,7 @@ export default function LoginPage() {
               disabled={
                 loading || !password || !confirmPassword || !passwordsMatch
               }
-              className="w-full py-2 rounded-md bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-60 transition-colors"
+              className="w-full py-3 rounded-xl bg-red-600 text-white font-semibold shadow-md hover:shadow-lg transform-gpu hover:-translate-y-0.5 disabled:opacity-60 transition-all"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>
