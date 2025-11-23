@@ -2,7 +2,11 @@ import { EmblaOptionsType } from "embla-carousel";
 import EmblaCarousel from "./EmblaCarousel";
 import { getData } from "../helpers/get-image-data";
 export default async function SearchPage() {
-  const OPTIONS: EmblaOptionsType = { loop: true };
+  const OPTIONS: EmblaOptionsType = {
+    loop: true,
+    align: "start",
+    containScroll: "trimSnaps",
+  };
 
   const electronicsData = await getData(["electronics"]);
   const furnitureData = await getData(["furniture", "lighting"]);
@@ -48,7 +52,7 @@ export default async function SearchPage() {
   return (
     <div className="flex flex-col">
       <div className="searchBar"></div>
-      <div className="flex flex-col items-center p-4 md:p-20 gap-y-10 md:gap-y-14 w-screen">
+      <div className="flex flex-col items-center p-4 md:p-20 gap-y-6 md:gap-y-14 w-screen">
         <div className="w-full">
           <h1 className="mb-2 font-bold text-2xl">Electronics</h1>
           {electronicsComponent}
