@@ -111,6 +111,7 @@ export default function ImageTagger() {
                 ? null
                 : parseFloat(tags.price)
               : null,
+          pickup_location: tags.pickup_location.trim() || null,
         }),
       });
 

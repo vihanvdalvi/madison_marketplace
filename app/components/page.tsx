@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createAccount, login } from "../../hashing";
 // Firebase Functions imports removed because this component currently uses mocked backend calls.
 // If you enable real backend calls later, install the Firebase SDK and re-add:
@@ -19,6 +20,7 @@ const STRONG_PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])(?=.{12,})/;
 
 export default function LoginPage() {
   const [mode, setMode] = useState<"login" | "create">("login");
+  const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,8 +57,9 @@ export default function LoginPage() {
       const loginPromise = login(normalized, password);
       setPassword("");
       await loginPromise;
-      alert("Login Successful!");
+      // Redirect to upload page after successful login
       resetForm();
+      router.push("/upload");
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Login failed. Check credentials.");
