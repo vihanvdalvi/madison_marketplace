@@ -34,6 +34,12 @@ export default function Navbar() {
                 Browse
               </Link>
               <Link
+                href="/search"
+                className="inline-flex items-center h-full text-lg leading-none text-gray-700 hover:text-gray-900"
+              >
+                Search
+              </Link>
+              <Link
                 href="/upload"
                 className="inline-flex items-center h-full text-lg leading-none text-gray-700 hover:text-gray-900"
               >
@@ -92,6 +98,9 @@ export default function Navbar() {
           <div className="px-4 py-3 space-y-2">
             <Link href="/browse" className="block text-gray-700">
               Browse
+            </Link>
+            <Link href="/search" className="block text-gray-700">
+              Search
             </Link>
             <Link href="/upload" className="block text-gray-700">
               Sell
