@@ -1,0 +1,247 @@
+---
+title: "madison_marketplace_cleaned_data"
+author: "Vihan Dalvi"
+date: "2025-11-22"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(warn = -1)  # turn off warnings
+```
+
+## Cleaning the Data
+
+# Libraries being used
+```{r}
+# for reading and parsing JSON or JSONL files.
+library(jsonlite)
+# for data manipulation — filtering, grouping, joining, summarizing.
+library(tidyverse)
+# for plotting trends
+library(ggplot2)
+```
+
+# 1. Convert jsonl data files to csv files
+
+```{python, warning=FALSE}
+
+import json
+import csv
+
+# Set the number of lines to read from each JSONL file
+max_lines_to_read = 800000 
+
+def jsonl_to_csv_standard(jsonl_file_path, csv_file_path, max_lines=None):
+    # List to store JSON objects
+    data = []
+    count = 0
+
+    # Read the JSONL file line by line
+    with open(jsonl_file_path, 'r', encoding='utf-8') as jsonl_file:
+        for line in jsonl_file:
+            # Stop reading if max_lines is reached
+            if max_lines and count >= max_lines:
+                break
+            try:
+                # Parse each line as a JSON object
+                json_object = json.loads(line)
+                data.append(json_object)
+                count += 1
+            except json.JSONDecodeError:
+                # Skip malformed JSON lines
+                print(f"Skipping malformed line: {line.strip()}")
+                continue
+
+    # Exit if no valid data found
+    if not data:
+        print(f"No valid data found in {jsonl_file_path}")
+        return
+
+    # Determine CSV headers from the first JSON object
+    fieldnames = list(data[0].keys())
+
+    # Write the JSON data to CSV
+    with open(csv_file_path, 'w', newline='', encoding='utf-8') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(data)
+
+    # Print confirmation
+    print(f"Converted '{jsonl_file_path}' to '{csv_file_path}'")
+
+# Convert all your JSONL files to CSV using the max_lines variable
+jsonl_to_csv_standard('meta_Home_and_Kitchen.jsonl', 'meta_Home_and_Kitchen.csv', max_lines=max_lines_to_read)
+jsonl_to_csv_standard('meta_Appliances.jsonl', 'meta_Appliances.csv', max_lines=max_lines_to_read)
+jsonl_to_csv_standard('meta_Electronics.jsonl', 'meta_Electronics.csv', max_lines=max_lines_to_read)
+jsonl_to_csv_standard('meta_Office_Products.jsonl', 'meta_Office_Products.csv', max_lines=max_lines_to_read)
+
+
+```
+
+# 2. Convert csv files to dataframe
+
+```{r}
+
+# Read Home & Kitchen CSV
+df_home <- read.csv("meta_Home_and_Kitchen.csv", stringsAsFactors = FALSE)
+
+# Read Appliances CSV
+df_appliances <- read.csv("meta_Appliances.csv", stringsAsFactors = FALSE)
+
+# Read Electronics CSV
+df_electronics <- read.csv("meta_Electronics.csv", stringsAsFactors = FALSE)
+
+# Read Office Products CSV
+df_officeProducts <- read.csv("meta_Office_Products.csv", stringsAsFactors = FALSE)
+
+```
+
+# 3. Remove data from unneccessary columns
+
+```{r}
+
+# Keep only relevant columns
+df_home_relevant <- df_home %>% select(categories, main_category, price)
+df_appliances_relevant <- df_appliances %>% select(categories, main_category, price)
+df_electronics_relevant <- df_electronics %>% select(categories, main_category, price)
+df_officeProducts_relevant <- df_officeProducts %>% select(categories, main_category, price)
+
+```
+
+# 4. Convert character data type entries in categories column into array
+
+```{r}
+
+# Function to parse categories column
+parse_categories <- function(df) {
+  df$categories <- lapply(df$categories, function(x) {
+    if (is.na(x) || x == "") return(NA)
+    x <- gsub("\\[|\\]", "", x)                 # remove square brackets
+    parts <- strsplit(x, ",\\s*")[[1]]         # split on comma
+    parts <- gsub("^['\"]|['\"]$", "", parts)  # remove surrounding quotes
+    trimws(parts)                              # remove extra spaces
+  })
+  return(df)
+}
+
+# Apply to all relevant datasets
+df_home_relevant <- parse_categories(df_home_relevant)
+df_appliances_relevant <- parse_categories(df_appliances_relevant)
+df_electronics_relevant <- parse_categories(df_electronics_relevant)
+df_officeProducts_relevant <- parse_categories(df_officeProducts_relevant)
+
+head(df_home_relevant)
+
+```
+
+# 5. Make an individual row for each item in the categories row
+
+```{r}
+
+# Unnest categories for all data sets
+
+df_home_relevant_long <- df_home_relevant %>%
+  unnest(categories)
+
+df_appliances_relevant_long <- df_appliances_relevant %>%
+  unnest(categories)
+
+df_electronics_relevant_long <- df_electronics_relevant %>%
+  unnest(categories)
+
+df_officeProducts_relevant_long <- df_officeProducts_relevant %>%
+  unnest(categories)
+
+```
+
+# 6. Remove NA values
+
+```{r}
+
+df_home_relevant_long_valid <- df_home_relevant_long %>% drop_na()
+df_appliances_relevant_long_valid <- df_appliances_relevant_long %>% drop_na()
+df_electronics_relevant_long_valid <- df_appliances_relevant_long %>% drop_na()
+df_officeProducts_relevant_long_valid <- df_officeProducts_relevant_long %>% drop_na()
+
+```
+
+# 7. Remove unwanted categories from each long dataframe
+
+```{r}
+
+df_officeProducts_relevant_long_valid <- df_officeProducts_relevant_long_valid %>%
+  filter(!categories %in% c("Office Products", "Office Electronics", "Office & School Supplies"))
+  
+df_appliances_relevant_long_valid <- df_appliances_relevant_long_valid %>%
+  filter(!categories %in% c("Appliances", "Parts & Accessories"))
+
+df_home_relevant_long_valid <- df_home_relevant_long_valid %>%
+  filter(!categories %in% c("Home & Kitchen", "Kitchen Dining"))
+
+df_electronics_relevant_long_valid <- df_electronics_relevant_long_valid %>%
+  filter(!categories %in% c("Appliances", "Dryer Parts & Accessories",
+  "Parts & Accessories", "Laundry Appliances"))
+
+```
+
+# 8. Create a new column for date sold (this for when new product entries are added to the website so that we can make line based trends)
+
+```{r}
+
+df_home_relevant_long_valid <- df_home_relevant_long_valid %>%
+mutate(date_log = as.Date(NA))
+
+df_appliances_relevant_long_valid <- df_appliances_relevant_long_valid %>%
+mutate(date_log = as.Date(NA))
+
+df_electronics_relevant_long_valid <- df_electronics_relevant_long_valid %>%
+mutate(date_log = as.Date(NA))
+
+df_officeProducts_relevant_long_valid <- df_officeProducts_relevant_long_valid %>%
+mutate(date_log = as.Date(NA))
+
+```
+
+# 9. Combine dataframes into 1 data frame 
+
+```{r}
+
+df_all_products <- bind_rows(
+  df_home_relevant_long_valid,
+  df_appliances_relevant_long_valid,
+  df_electronics_relevant_long_valid,
+  df_officeProducts_relevant_long_valid
+)
+
+# remove general categories
+# Remove rows where 'categories' contains '&'
+df_all_products <- df_all_products %>%
+  filter(!grepl("&", categories))
+
+# 2. Remove "Home Décor Products"
+df_all_products <- df_all_products %>%
+  filter(categories != "Home Décor Products")
+
+# 3. Remove "Kitchen Accessories"
+df_all_products <- df_all_products %>%
+  filter(categories != "Kitchen Accessories")
+
+# 4. Remove "Bathroom Accessories"
+df_all_products <- df_all_products %>%
+  filter(categories != "Bathroom Accessories")
+
+# 5. Remove "Home Décor Accents"
+df_all_products <- df_all_products %>%
+  filter(categories != "Home Décor Accents")
+
+```
+
+# 10. Convert to dataframe to json file 
+
+```{r}
+
+write_json(df_all_products, path = "madison_marketplace_cleaned.json", pretty = TRUE, auto_unbox = TRUE)
+
+```
+
